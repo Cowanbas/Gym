@@ -316,7 +316,6 @@ fun MainHomeScreen() {
     fun persistRoutines() {
         scope.launch {
             Store.saveRoutines(context, routines.toMap())
-            // Also update current active template
             val idx = templates.indexOfFirst { it.name == activeTemplateName }
             if (idx >= 0) {
                 templates[idx] = WorkoutTemplate(activeTemplateName, routines.toMap())
@@ -404,6 +403,26 @@ fun MainHomeScreen() {
                                 persistRoutines()
                                 toast("Ficha $newName criada e aplicada!")
                             },
+                            onDeleteTemplate = { nameToDelete ->
+                                if (templates.size <= 1) {
+                                    toast("Você precisa ter pelo menos uma ficha.")
+                                } else {
+                                    val idx = templates.indexOfFirst { it.name == nameToDelete }
+                                    if (idx >= 0) {
+                                        templates.removeAt(idx)
+                                        persistTemplates()
+                                        if (activeTemplateName == nameToDelete) {
+                                            val next = templates.first()
+                                            activeTemplateName = next.name
+                                            scope.launch { Store.saveActiveTemplateName(context, next.name) }
+                                            routines.clear()
+                                            routines.putAll(next.routines)
+                                            persistRoutines()
+                                        }
+                                        toast("Ficha $nameToDelete excluída.")
+                                    }
+                                }
+                            },
                             onRoutineUpdated = { key, routine ->
                                 routines[key] = routine
                                 persistRoutines()
@@ -449,6 +468,7 @@ fun RoutinesTab(
     activeTemplateName: String,
     onSelectTemplate: (String) -> Unit,
     onCreateTemplate: (String, Map<String, Routine>) -> Unit,
+    onDeleteTemplate: (String) -> Unit,
     onRoutineUpdated: (String, Routine) -> Unit,
     onCompleteToday: (String, Routine) -> Unit
 ) {
@@ -467,10 +487,8 @@ fun RoutinesTab(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Column {
-                    Text("Treinos da Semana", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = AppTheme.text)
-                    Text("Ativa: $activeTemplateName", fontSize = 11.sp, color = AppTheme.muted)
-                }
+                Text("Treinos da Semana", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = AppTheme.text)
+
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                     Box(
                         modifier = Modifier
@@ -496,12 +514,36 @@ fun RoutinesTab(
                             templates.forEach { template ->
                                 DropdownMenuItem(
                                     text = {
-                                        Row(verticalAlignment = Alignment.CenterVertically) {
-                                            if (template.name == activeTemplateName) {
-                                                Icon(Icons.Default.Check, null, tint = AppTheme.text, modifier = Modifier.size(16.dp))
-                                                Spacer(Modifier.width(6.dp))
+                                        Row(
+                                            modifier = Modifier.fillMaxWidth(),
+                                            horizontalArrangement = Arrangement.SpaceBetween,
+                                            verticalAlignment = Alignment.CenterVertically
+                                        ) {
+                                            Row(
+                                                verticalAlignment = Alignment.CenterVertically,
+                                                modifier = Modifier.weight(1f)
+                                            ) {
+                                                if (template.name == activeTemplateName) {
+                                                    Icon(Icons.Default.Check, null, tint = AppTheme.text, modifier = Modifier.size(16.dp))
+                                                    Spacer(Modifier.width(6.dp))
+                                                }
+                                                Text(
+                                                    template.name,
+                                                    color = AppTheme.text,
+                                                    fontWeight = if (template.name == activeTemplateName) FontWeight.Bold else FontWeight.Normal
+                                                )
                                             }
-                                            Text(template.name, color = AppTheme.text, fontWeight = if (template.name == activeTemplateName) FontWeight.Bold else FontWeight.Normal)
+                                            if (templates.size > 1) {
+                                                IconButton(
+                                                    onClick = {
+                                                        menuExpanded = false
+                                                        onDeleteTemplate(template.name)
+                                                    },
+                                                    modifier = Modifier.size(30.dp)
+                                                ) {
+                                                    Icon(Icons.Default.Delete, contentDescription = "Excluir ficha", tint = AppTheme.muted, modifier = Modifier.size(16.dp))
+                                                }
+                                            }
                                         }
                                     },
                                     onClick = {
