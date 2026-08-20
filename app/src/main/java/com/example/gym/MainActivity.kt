@@ -12,6 +12,7 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -28,7 +29,9 @@ import androidx.compose.runtime.snapshots.SnapshotStateMap
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -63,7 +66,7 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-// --- TEMA PERSONALIZADO (SEM A COR DO ÍCONE) ---[cite: 1]
+// --- CUSTOM THEME ---[cite: 1, 2]
 object AppTheme {
     val bg = Color(0xFF121212)
     val card = Color(0xFF121212)
@@ -87,7 +90,7 @@ fun GymTheme(content: @Composable () -> Unit) {
     )
 }
 
-// --- MODELOS ---[cite: 1]
+// --- MODELS ---[cite: 1, 2]
 data class Exercise(
     val id: String = System.nanoTime().toString(),
     val name: String = "",
@@ -111,7 +114,7 @@ data class Exercise(
 }
 
 data class Routine(
-    val title: String = "Treino",
+    val title: String = "Workout",
     val exercises: List<Exercise> = emptyList()
 ) {
     fun toJson(): JSONObject = JSONObject().apply {
@@ -124,7 +127,7 @@ data class Routine(
             val arr = json.optJSONArray("exercises")
             val list = mutableListOf<Exercise>()
             if (arr != null) for (i in 0 until arr.length()) list.add(Exercise.fromJson(arr.getJSONObject(i)))
-            return Routine(json.optString("title", "Treino"), list)
+            return Routine(json.optString("title", "Workout"), list)
         }
     }
 }
@@ -142,7 +145,7 @@ data class WorkoutTemplate(
 
     companion object {
         fun fromJson(json: JSONObject): WorkoutTemplate {
-            val name = json.optString("name", "Ficha")
+            val name = json.optString("name", "Template A")
             val routinesObj = json.optJSONObject("routines") ?: JSONObject()
             val map = mutableMapOf<String, Routine>()
             routinesObj.keys().forEach { k ->
@@ -156,7 +159,7 @@ data class WorkoutTemplate(
 data class WorkoutHistory(
     val date: String,
     val routineKey: String = "",
-    val routineTitle: String = "Treino",
+    val routineTitle: String = "Workout",
     val exercises: List<Exercise> = emptyList()
 ) {
     fun toJson(): JSONObject = JSONObject().apply {
@@ -174,14 +177,14 @@ data class WorkoutHistory(
             return WorkoutHistory(
                 date = json.optString("date", ""),
                 routineKey = json.optString("routineKey", ""),
-                routineTitle = json.optString("routineTitle", "Treino"),
+                routineTitle = json.optString("routineTitle", "Workout"),
                 exercises = list
             )
         }
     }
 }
 
-// --- PERSISTÊNCIA OTIMIZADA ---[cite: 1]
+// --- OPTIMIZED PERSISTENCE ---[cite: 1, 2]
 object Store {
     private const val PREFS = "gym_store"
     private const val KEY_ROUTINES = "routines"
@@ -214,7 +217,7 @@ object Store {
     }
 
     suspend fun loadActiveTemplateName(ctx: Context): String = withContext(Dispatchers.IO) {
-        prefs(ctx).getString(KEY_ACTIVE_TEMPLATE, "Ficha A") ?: "Ficha A"
+        prefs(ctx).getString(KEY_ACTIVE_TEMPLATE, "Template A") ?: "Template A"
     }
 
     suspend fun loadHistory(ctx: Context): Map<String, WorkoutHistory> = withContext(Dispatchers.IO) {
@@ -250,40 +253,40 @@ object Store {
     }
 
     fun defaultRoutines(): Map<String, Routine> = mapOf(
-        "segunda" to Routine("( inserir )", emptyList()),
-        "terca" to Routine("( inserir )", emptyList()),
-        "quarta" to Routine("( inserir )", emptyList()),
-        "quinta" to Routine("( inserir )", emptyList()),
-        "sexta" to Routine("( inserir )", emptyList()),
-        "sabado" to Routine("( inserir )", emptyList()),
-        "domingo" to Routine("( inserir )", emptyList())
+        "monday" to Routine("( insert )", emptyList()),
+        "tuesday" to Routine("( insert )", emptyList()),
+        "wednesday" to Routine("( insert )", emptyList()),
+        "thursday" to Routine("( insert )", emptyList()),
+        "friday" to Routine("( insert )", emptyList()),
+        "saturday" to Routine("( insert )", emptyList()),
+        "sunday" to Routine("( insert )", emptyList())
     )
 
     fun defaultTemplates(): List<WorkoutTemplate> = listOf(
-        WorkoutTemplate("Ficha A", defaultRoutines()),
-        WorkoutTemplate("Ficha B", defaultRoutines())
+        WorkoutTemplate("Template A", defaultRoutines()),
+        WorkoutTemplate("Template B", defaultRoutines())
     )
 }
 
 val DATE_FMT: DateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
 fun fmt(date: LocalDate): String = date.format(DATE_FMT)
-val DAY_KEYS = listOf("segunda", "terca", "quarta", "quinta", "sexta", "sabado", "domingo")
+val DAY_KEYS = listOf("monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday")
 
 data class WeekDay(val key: String, val name: String, val short: String)
 
 val WEEK_DAYS = listOf(
-    WeekDay("segunda", "Segunda-Feira", "Seg"),
-    WeekDay("terca", "Terça-Feira", "Ter"),
-    WeekDay("quarta", "Quarta-Feira", "Qua"),
-    WeekDay("quinta", "Quinta-Feira", "Qui"),
-    WeekDay("sexta", "Sexta-Feira", "Sex"),
-    WeekDay("sabado", "Sábado", "Sáb"),
-    WeekDay("domingo", "Domingo", "Dom")
+    WeekDay("monday", "Monday", "Mon"),
+    WeekDay("tuesday", "Tuesday", "Tue"),
+    WeekDay("wednesday", "Wednesday", "Wed"),
+    WeekDay("thursday", "Thursday", "Thu"),
+    WeekDay("friday", "Friday", "Fri"),
+    WeekDay("saturday", "Saturday", "Sat"),
+    WeekDay("sunday", "Sunday", "Sun")
 )
 
 fun routineKeyForDate(date: LocalDate): String = DAY_KEYS[date.dayOfWeek.value - 1]
 
-// --- TELA PRINCIPAL ---[cite: 1]
+// --- MAIN SCREEN ---[cite: 1, 2]
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun MainHomeScreen() {
@@ -292,7 +295,7 @@ fun MainHomeScreen() {
 
     val routines = remember { mutableStateMapOf<String, Routine>() }
     val templates = remember { mutableStateListOf<WorkoutTemplate>() }
-    var activeTemplateName by remember { mutableStateOf("Ficha A") }
+    var activeTemplateName by remember { mutableStateOf("Template A") }
     val history = remember { mutableStateMapOf<String, WorkoutHistory>() }
     var loaded by remember { mutableStateOf(false) }
 
@@ -459,7 +462,7 @@ fun MainHomeScreen() {
 }
 
 // ==========================================
-// ABA 1: TREINOS DA SEMANA
+// TAB 1: WEEKLY WORKOUTS
 // ==========================================
 @Composable
 fun RoutinesTab(
@@ -492,7 +495,7 @@ fun RoutinesTab(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text("Treinos da Semana", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = AppTheme.text)
+                Text("Weekly Workouts", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = AppTheme.text)
 
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                     Box(
@@ -501,7 +504,7 @@ fun RoutinesTab(
                             .border(1.dp, AppTheme.border, RoundedCornerShape(20.dp))
                             .padding(horizontal = 10.dp, vertical = 4.dp)
                     ) {
-                        Text("Hoje: $todayShort", fontSize = 12.sp, color = AppTheme.text, fontWeight = FontWeight.Bold)
+                        Text("Today: $todayShort", fontSize = 12.sp, color = AppTheme.text, fontWeight = FontWeight.Bold)
                     }
 
                     Box {
@@ -509,7 +512,7 @@ fun RoutinesTab(
                             onClick = { menuExpanded = true },
                             modifier = Modifier.size(36.dp)
                         ) {
-                            Icon(Icons.Default.MoreVert, contentDescription = "Fichas de Treino", tint = AppTheme.text)
+                            Icon(Icons.Default.MoreVert, contentDescription = "Workout Templates", tint = AppTheme.text)
                         }
                         DropdownMenu(
                             expanded = menuExpanded,
@@ -545,7 +548,7 @@ fun RoutinesTab(
                                                 },
                                                 modifier = Modifier.size(30.dp)
                                             ) {
-                                                Icon(Icons.Default.Settings, contentDescription = "Configurar ficha", tint = AppTheme.muted, modifier = Modifier.size(16.dp))
+                                                Icon(Icons.Default.Settings, contentDescription = "Configure template", tint = AppTheme.muted, modifier = Modifier.size(16.dp))
                                             }
                                         }
                                     },
@@ -561,7 +564,7 @@ fun RoutinesTab(
                                     Row(verticalAlignment = Alignment.CenterVertically) {
                                         Icon(Icons.Default.Add, null, tint = AppTheme.text, modifier = Modifier.size(16.dp))
                                         Spacer(Modifier.width(6.dp))
-                                        Text("Criar", color = AppTheme.text, fontWeight = FontWeight.Bold)
+                                        Text("Create", color = AppTheme.text, fontWeight = FontWeight.Bold)
                                     }
                                 },
                                 onClick = {
@@ -576,7 +579,7 @@ fun RoutinesTab(
         }
 
         items(WEEK_DAYS, key = { it.key }) { day ->
-            val routine = routines[day.key] ?: Routine("( inserir )")
+            val routine = routines[day.key] ?: Routine("( insert )")
             val isToday = day.key == todayKey
             val isDoneToday = isToday && history.containsKey(formattedToday)
 
@@ -619,12 +622,12 @@ fun RoutinesTab(
                                         .border(1.dp, AppTheme.border, RoundedCornerShape(4.dp))
                                         .padding(horizontal = 5.dp, vertical = 1.dp)
                                 ) {
-                                    Text("HOJE", fontSize = 8.sp, color = AppTheme.text, fontWeight = FontWeight.Bold)
+                                    Text("TODAY", fontSize = 8.sp, color = AppTheme.text, fontWeight = FontWeight.Bold)
                                 }
                             }
                         }
                         Text(
-                            "${routine.exercises.size} ${if (routine.exercises.size == 1) "exercício" else "exercícios"}",
+                            "${routine.exercises.size} ${if (routine.exercises.size == 1) "exercise" else "exercises"}",
                             fontSize = 11.sp,
                             color = AppTheme.muted
                         )
@@ -640,7 +643,7 @@ fun RoutinesTab(
     }
 
     editingKey?.let { key ->
-        val routine = routines[key] ?: Routine("( inserir )")
+        val routine = routines[key] ?: Routine("( insert )")
         val isToday = key == todayKey
         RoutineEditModal(
             routine = routine,
@@ -721,9 +724,9 @@ fun EditTemplateModal(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text("Editar Ficha", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = AppTheme.text)
+                    Text("Edit Template", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = AppTheme.text)
                     IconButton(onClick = onDismiss) {
-                        Icon(Icons.Default.Close, "Fechar", tint = AppTheme.muted)
+                        Icon(Icons.Default.Close, "Close", tint = AppTheme.muted)
                     }
                 }
                 Spacer(Modifier.height(6.dp))
@@ -735,7 +738,7 @@ fun EditTemplateModal(
                     },
                     modifier = Modifier.fillMaxWidth(),
                     singleLine = true,
-                    label = { Text("Nome da Ficha", color = AppTheme.muted) },
+                    label = { Text("Template Name", color = AppTheme.muted) },
                     textStyle = TextStyle(fontSize = 14.sp, color = AppTheme.text),
                     colors = OutlinedTextFieldDefaults.colors(
                         focusedBorderColor = AppTheme.text,
@@ -751,11 +754,11 @@ fun EditTemplateModal(
 
             item {
                 Spacer(Modifier.height(4.dp))
-                Text("Treinos da ficha (clique para editar ou excluir exercícios):", fontSize = 12.sp, color = AppTheme.muted, fontWeight = FontWeight.Bold)
+                Text("Template workouts (tap to edit or delete exercises):", fontSize = 12.sp, color = AppTheme.muted, fontWeight = FontWeight.Bold)
             }
 
             items(WEEK_DAYS, key = { it.key }) { day ->
-                val routine = routinesMap[day.key] ?: Routine("( inserir )")
+                val routine = routinesMap[day.key] ?: Routine("( insert )")
                 Card(
                     colors = CardDefaults.cardColors(containerColor = AppTheme.hover),
                     shape = RoundedCornerShape(8.dp),
@@ -770,7 +773,7 @@ fun EditTemplateModal(
                         Column(modifier = Modifier.weight(1f)) {
                             Text(day.name, fontSize = 11.sp, color = AppTheme.muted, fontWeight = FontWeight.Bold)
                             Text(routine.title, fontSize = 13.sp, color = AppTheme.text, fontWeight = FontWeight.Bold)
-                            Text("${routine.exercises.size} exercícios", fontSize = 10.sp, color = AppTheme.muted)
+                            Text("${routine.exercises.size} exercises", fontSize = 10.sp, color = AppTheme.muted)
                         }
                         Icon(Icons.Default.Edit, null, tint = AppTheme.muted, modifier = Modifier.size(16.dp))
                     }
@@ -789,7 +792,7 @@ fun EditTemplateModal(
                         ) {
                             Icon(Icons.Default.Delete, null, tint = AppTheme.text, modifier = Modifier.size(15.dp))
                             Spacer(Modifier.width(6.dp))
-                            Text("Excluir Ficha", color = AppTheme.text)
+                            Text("Delete Template", color = AppTheme.text)
                         }
                     }
                     Button(
@@ -797,7 +800,7 @@ fun EditTemplateModal(
                             val name = templateName.trim().ifBlank { template.name }
                             val nameExists = templates.any { it.name.equals(name, ignoreCase = true) && it.name != template.name }
                             if (nameExists) {
-                                errorMessage = "Já existe outra ficha com este nome."
+                                errorMessage = "Another template with this name already exists."
                             } else {
                                 onSave(WorkoutTemplate(name, routinesMap.toMap()))
                             }
@@ -807,7 +810,7 @@ fun EditTemplateModal(
                     ) {
                         Icon(Icons.Default.Check, null, tint = Color.Black, modifier = Modifier.size(15.dp))
                         Spacer(Modifier.width(6.dp))
-                        Text("Salvar Ficha", color = Color.Black, fontWeight = FontWeight.Bold)
+                        Text("Save Template", color = Color.Black, fontWeight = FontWeight.Bold)
                     }
                 }
                 Spacer(Modifier.height(32.dp))
@@ -816,7 +819,7 @@ fun EditTemplateModal(
     }
 
     editingDayKey?.let { dayKey ->
-        val routine = routinesMap[dayKey] ?: Routine("( inserir )")
+        val routine = routinesMap[dayKey] ?: Routine("( insert )")
         RoutineEditModal(
             routine = routine,
             isToday = false,
@@ -836,16 +839,16 @@ fun EditTemplateModal(
         AlertDialog(
             onDismissRequest = { showDeleteConfirm = false },
             containerColor = AppTheme.card,
-            title = { Text("Excluir ficha?", color = AppTheme.text) },
-            text = { Text("A ficha '${template.name}' será removida permanentemente.", color = AppTheme.muted) },
+            title = { Text("Delete template?", color = AppTheme.text) },
+            text = { Text("The template '${template.name}' will be permanently removed.", color = AppTheme.muted) },
             confirmButton = {
                 TextButton(onClick = {
                     showDeleteConfirm = false
                     onDelete()
-                }) { Text("Excluir", color = AppTheme.text) }
+                }) { Text("Delete", color = AppTheme.text) }
             },
             dismissButton = {
-                TextButton(onClick = { showDeleteConfirm = false }) { Text("Cancelar", color = AppTheme.muted) }
+                TextButton(onClick = { showDeleteConfirm = false }) { Text("Cancel", color = AppTheme.muted) }
             }
         )
     }
@@ -881,9 +884,9 @@ fun CreateTemplateModal(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text("Criar Nova Ficha", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = AppTheme.text)
+                    Text("Create New Template", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = AppTheme.text)
                     IconButton(onClick = onDismiss) {
-                        Icon(Icons.Default.Close, "Fechar", tint = AppTheme.muted)
+                        Icon(Icons.Default.Close, "Close", tint = AppTheme.muted)
                     }
                 }
                 Spacer(Modifier.height(6.dp))
@@ -895,7 +898,7 @@ fun CreateTemplateModal(
                     },
                     modifier = Modifier.fillMaxWidth(),
                     singleLine = true,
-                    label = { Text("Nome da Ficha (ex: Ficha C)", color = AppTheme.muted) },
+                    label = { Text("Template Name (e.g., Template C)", color = AppTheme.muted) },
                     textStyle = TextStyle(fontSize = 14.sp, color = AppTheme.text),
                     colors = OutlinedTextFieldDefaults.colors(
                         focusedBorderColor = AppTheme.text,
@@ -911,11 +914,11 @@ fun CreateTemplateModal(
 
             item {
                 Spacer(Modifier.height(4.dp))
-                Text("Defina os treinos para os dias da semana:", fontSize = 12.sp, color = AppTheme.muted, fontWeight = FontWeight.Bold)
+                Text("Define the workouts for the days of the week:", fontSize = 12.sp, color = AppTheme.muted, fontWeight = FontWeight.Bold)
             }
 
             items(WEEK_DAYS, key = { it.key }) { day ->
-                val routine = routinesMap[day.key] ?: Routine("( inserir )")
+                val routine = routinesMap[day.key] ?: Routine("( insert )")
                 Card(
                     colors = CardDefaults.cardColors(containerColor = AppTheme.hover),
                     shape = RoundedCornerShape(8.dp),
@@ -930,7 +933,7 @@ fun CreateTemplateModal(
                         Column(modifier = Modifier.weight(1f)) {
                             Text(day.name, fontSize = 11.sp, color = AppTheme.muted, fontWeight = FontWeight.Bold)
                             Text(routine.title, fontSize = 13.sp, color = AppTheme.text, fontWeight = FontWeight.Bold)
-                            Text("${routine.exercises.size} exercícios", fontSize = 10.sp, color = AppTheme.muted)
+                            Text("${routine.exercises.size} exercises", fontSize = 10.sp, color = AppTheme.muted)
                         }
                         Icon(Icons.Default.Edit, null, tint = AppTheme.muted, modifier = Modifier.size(16.dp))
                     }
@@ -941,10 +944,10 @@ fun CreateTemplateModal(
                 Spacer(Modifier.height(10.dp))
                 Button(
                     onClick = {
-                        val name = templateName.trim().ifBlank { "Nova Ficha" }
+                        val name = templateName.trim().ifBlank { "New Template" }
                         val nameExists = templates.any { it.name.equals(name, ignoreCase = true) }
                         if (nameExists) {
-                            errorMessage = "Já existe uma ficha com este nome."
+                            errorMessage = "A template with this name already exists."
                         } else {
                             onSave(name, routinesMap.toMap())
                         }
@@ -954,7 +957,7 @@ fun CreateTemplateModal(
                 ) {
                     Icon(Icons.Default.Check, null, tint = Color.Black, modifier = Modifier.size(15.dp))
                     Spacer(Modifier.width(6.dp))
-                    Text("Salvar e Aplicar Ficha", color = Color.Black, fontWeight = FontWeight.Bold)
+                    Text("Save and Apply Template", color = Color.Black, fontWeight = FontWeight.Bold)
                 }
                 Spacer(Modifier.height(32.dp))
             }
@@ -962,7 +965,7 @@ fun CreateTemplateModal(
     }
 
     editingDayKey?.let { dayKey ->
-        val routine = routinesMap[dayKey] ?: Routine("( inserir )")
+        val routine = routinesMap[dayKey] ?: Routine("( insert )")
         RoutineEditModal(
             routine = routine,
             isToday = false,
@@ -982,26 +985,61 @@ fun CreateTemplateModal(
 @Composable
 fun ExerciseCardItem(
     exercise: Exercise,
+    index: Int,
+    totalItems: Int,
     onChanged: (Exercise) -> Unit,
-    onDelete: () -> Unit
+    onDelete: () -> Unit,
+    onMove: (fromIndex: Int, toIndex: Int) -> Unit
 ) {
     var expanded by remember { mutableStateOf(false) }
+    var dragOffset by remember { mutableStateOf(0f) }
 
     Card(
         colors = CardDefaults.cardColors(containerColor = AppTheme.hover),
         shape = RoundedCornerShape(8.dp),
         border = BorderStroke(1.dp, AppTheme.border),
-        modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp)
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(bottom = 8.dp)
+            .graphicsLayer { translationY = dragOffset }
     ) {
         Column(modifier = Modifier.padding(10.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
+                // Ícone e gesto para segurar e arrastar
+                Icon(
+                    imageVector = Icons.Default.DragHandle,
+                    contentDescription = "Drag to reorder",
+                    tint = AppTheme.muted,
+                    modifier = Modifier
+                        .size(24.dp)
+                        .pointerInput(index) {
+                            detectDragGestures(
+                                onDragStart = { },
+                                onDragEnd = { dragOffset = 0f },
+                                onDragCancel = { dragOffset = 0f },
+                                onDrag = { change, dragAmount ->
+                                    change.consume()
+                                    dragOffset += dragAmount.y
+                                    if (dragOffset > 70f && index < totalItems - 1) {
+                                        onMove(index, index + 1)
+                                        dragOffset = 0f
+                                    } else if (dragOffset < -70f && index > 0) {
+                                        onMove(index, index - 1)
+                                        dragOffset = 0f
+                                    }
+                                }
+                            )
+                        }
+                )
+                Spacer(Modifier.width(8.dp))
+
                 if (expanded) {
                     OutlinedTextField(
                         value = exercise.name,
                         onValueChange = { onChanged(exercise.copy(name = it)) },
                         modifier = Modifier.weight(1f),
                         singleLine = true,
-                        placeholder = { Text("Nome do Exercício", color = AppTheme.muted, fontSize = 12.sp) },
+                        placeholder = { Text("Exercise Name", color = AppTheme.muted, fontSize = 12.sp) },
                         textStyle = TextStyle(fontSize = 12.sp, fontWeight = FontWeight.Bold, color = AppTheme.text),
                         keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
                         colors = OutlinedTextFieldDefaults.colors(
@@ -1012,7 +1050,7 @@ fun ExerciseCardItem(
                     )
                 } else {
                     Text(
-                        text = exercise.name.ifBlank { "Exercício sem nome" },
+                        text = exercise.name.ifBlank { "Empity" },
                         modifier = Modifier.weight(1f).padding(vertical = 12.dp),
                         style = TextStyle(fontSize = 12.sp, fontWeight = FontWeight.Bold, color = if (exercise.name.isBlank()) AppTheme.muted else AppTheme.text)
                     )
@@ -1024,25 +1062,25 @@ fun ExerciseCardItem(
                 ) {
                     Icon(
                         imageVector = if (expanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
-                        contentDescription = if (expanded) "Recolher" else "Expandir",
+                        contentDescription = if (expanded) "Collapse" else "Expand",
                         tint = AppTheme.muted,
                         modifier = Modifier.size(18.dp)
                     )
                 }
                 IconButton(onClick = onDelete, modifier = Modifier.size(36.dp)) {
-                    Icon(Icons.Default.Delete, "Apagar", tint = AppTheme.muted, modifier = Modifier.size(18.dp))
+                    Icon(Icons.Default.Delete, "Delete", tint = AppTheme.muted, modifier = Modifier.size(18.dp))
                 }
             }
             if (expanded) {
                 Spacer(Modifier.height(6.dp))
                 Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                    NumberInputField("Séries", exercise.sets.toString(), Modifier.weight(1f)) {
+                    NumberInputField("Sets", exercise.sets.toString(), Modifier.weight(1f)) {
                         onChanged(exercise.copy(sets = it.toIntOrNull() ?: 0))
                     }
                     NumberInputField("Reps", exercise.reps.toString(), Modifier.weight(1f)) {
                         onChanged(exercise.copy(reps = it.toIntOrNull() ?: 0))
                     }
-                    NumberInputField("Carga (kg)", trimNumber(exercise.weight), Modifier.weight(1f), decimal = true) {
+                    NumberInputField("Weight (kg)", trimNumber(exercise.weight), Modifier.weight(1f), decimal = true) {
                         onChanged(exercise.copy(weight = it.replace(',', '.').toDoubleOrNull() ?: 0.0))
                     }
                 }
@@ -1125,7 +1163,7 @@ fun RoutineEditModal(
                         onValueChange = { title = it },
                         modifier = Modifier.weight(1f),
                         singleLine = true,
-                        label = { Text("Nome do treino", color = AppTheme.muted) },
+                        label = { Text("Workout name", color = AppTheme.muted) },
                         textStyle = TextStyle(fontSize = 16.sp, fontWeight = FontWeight.Bold, color = AppTheme.text),
                         keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
                         colors = OutlinedTextFieldDefaults.colors(
@@ -1135,7 +1173,7 @@ fun RoutineEditModal(
                         )
                     )
                     IconButton(onClick = onDismiss) {
-                        Icon(Icons.Default.Close, "Fechar", tint = AppTheme.muted)
+                        Icon(Icons.Default.Close, "Close", tint = AppTheme.muted)
                     }
                 }
             }
@@ -1149,12 +1187,12 @@ fun RoutineEditModal(
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Icon(Icons.Default.FitnessCenter, null, tint = AppTheme.text, modifier = Modifier.size(15.dp))
                         Spacer(Modifier.width(6.dp))
-                        Text("Exercícios", fontWeight = FontWeight.Bold, fontSize = 13.sp, color = AppTheme.text)
+                        Text("Exercises", fontWeight = FontWeight.Bold, fontSize = 13.sp, color = AppTheme.text)
                     }
                     TextButton(onClick = { exercises.add(Exercise()) }) {
                         Icon(Icons.Default.Add, null, tint = AppTheme.text, modifier = Modifier.size(15.dp))
                         Spacer(Modifier.width(2.dp))
-                        Text("Adicionar", color = AppTheme.text, fontSize = 12.sp)
+                        Text("Add", color = AppTheme.text, fontSize = 12.sp)
                     }
                 }
                 HorizontalDivider(color = AppTheme.border)
@@ -1163,7 +1201,7 @@ fun RoutineEditModal(
             if (exercises.isEmpty()) {
                 item {
                     Box(Modifier.fillMaxWidth().padding(20.dp), contentAlignment = Alignment.Center) {
-                        Text("Nenhum exercício cadastrado.", color = AppTheme.muted, fontSize = 12.sp)
+                        Text("No exercises registered.", color = AppTheme.muted, fontSize = 12.sp)
                     }
                 }
             } else {
@@ -1171,8 +1209,16 @@ fun RoutineEditModal(
                     val idx = exercises.indexOf(ex)
                     ExerciseCardItem(
                         exercise = ex,
+                        index = idx,
+                        totalItems = exercises.size,
                         onChanged = { updated -> if (idx in exercises.indices) exercises[idx] = updated },
-                        onDelete = { if (idx in exercises.indices) exercises.removeAt(idx) }
+                        onDelete = { if (idx in exercises.indices) exercises.removeAt(idx) },
+                        onMove = { from, to ->
+                            if (from in exercises.indices && to in exercises.indices) {
+                                val item = exercises.removeAt(from)
+                                exercises.add(to, item)
+                            }
+                        }
                     )
                 }
             }
@@ -1181,24 +1227,24 @@ fun RoutineEditModal(
                 Spacer(Modifier.height(6.dp))
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     Button(
-                        onClick = { onSave(Routine(title.ifBlank { "( inserir )" }, exercises.toList())) },
+                        onClick = { onSave(Routine(title.ifBlank { "( insert )" }, exercises.toList())) },
                         colors = ButtonDefaults.buttonColors(containerColor = AppTheme.hover),
                         border = BorderStroke(1.dp, AppTheme.border),
                         modifier = Modifier.weight(1f)
                     ) {
                         Icon(Icons.Default.Save, null, tint = AppTheme.text, modifier = Modifier.size(15.dp))
                         Spacer(Modifier.width(6.dp))
-                        Text("Salvar", color = AppTheme.text)
+                        Text("Save", color = AppTheme.text)
                     }
                     if (isToday) {
                         Button(
-                            onClick = { onComplete(Routine(title.ifBlank { "( inserir )" }, exercises.toList())) },
+                            onClick = { onComplete(Routine(title.ifBlank { "( insert )" }, exercises.toList())) },
                             colors = ButtonDefaults.buttonColors(containerColor = AppTheme.text),
                             modifier = Modifier.weight(1f)
                         ) {
                             Icon(Icons.Default.Check, null, tint = Color.Black, modifier = Modifier.size(15.dp))
                             Spacer(Modifier.width(6.dp))
-                            Text("Concluir", color = Color.Black, fontWeight = FontWeight.Bold)
+                            Text("Finish", color = Color.Black, fontWeight = FontWeight.Bold)
                         }
                     }
                 }
@@ -1209,7 +1255,7 @@ fun RoutineEditModal(
 }
 
 // ==========================================
-// ABA 2: CALENDÁRIO / CONSTÂNCIA / HISTÓRICO
+// TAB 2: CALENDAR / CONSTANCY / HISTORY
 // ==========================================
 @Composable
 fun ConstancyTab(
@@ -1252,19 +1298,19 @@ fun ConstancyTab(
     ) {
         item {
             Row(horizontalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.fillMaxWidth()) {
-                MetricCard(Icons.Default.LocalFireDepartment, streak.toString(), "Sequência Atual", Modifier.weight(1f))
-                MetricCard(Icons.Default.CalendarToday, monthCount.toString(), "Treinos no Mês", Modifier.weight(1f))
+                MetricCard(Icons.Default.LocalFireDepartment, streak.toString(), "Current Streak", Modifier.weight(1f))
+                MetricCard(Icons.Default.CalendarToday, monthCount.toString(), "Monthly Workouts", Modifier.weight(1f))
             }
         }
 
         item {
-            SectionCard(Icons.Default.BarChart, "Constância (16 Semanas)") {
+            SectionCard(Icons.Default.BarChart, "Consistency (16 Weeks)") {
                 Box(Modifier.height(100.dp).fillMaxWidth()) { HeatmapGrid(history) }
             }
         }
 
         item {
-            SectionCard(Icons.Default.ShowChart, "Semanas do Mês") {
+            SectionCard(Icons.Default.ShowChart, "Weeks of the Month") {
                 Column {
                     Row(
                         modifier = Modifier.fillMaxWidth(),
@@ -1272,14 +1318,14 @@ fun ConstancyTab(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         IconButton(onClick = { weeklyMonth = weeklyMonth.minusMonths(1) }) {
-                            Icon(Icons.Default.ChevronLeft, "Mês anterior", tint = AppTheme.text)
+                            Icon(Icons.Default.ChevronLeft, "Previous month", tint = AppTheme.text)
                         }
                         Text(
-                            "${weeklyMonth.month.getDisplayName(JavaTextStyle.FULL, Locale("pt", "BR")).uppercase()} ${weeklyMonth.year}",
+                            "${weeklyMonth.month.getDisplayName(JavaTextStyle.FULL, Locale.ENGLISH).uppercase()} ${weeklyMonth.year}",
                             fontWeight = FontWeight.Bold, fontSize = 12.sp, color = AppTheme.text
                         )
                         IconButton(onClick = { weeklyMonth = weeklyMonth.plusMonths(1) }) {
-                            Icon(Icons.Default.ChevronRight, "Próximo mês", tint = AppTheme.text)
+                            Icon(Icons.Default.ChevronRight, "Next month", tint = AppTheme.text)
                         }
                     }
                     Spacer(Modifier.height(6.dp))
@@ -1302,14 +1348,14 @@ fun ConstancyTab(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         IconButton(onClick = { selectedMonth = selectedMonth.minusMonths(1) }) {
-                            Icon(Icons.Default.ChevronLeft, "Mês anterior", tint = AppTheme.text)
+                            Icon(Icons.Default.ChevronLeft, "Previous month", tint = AppTheme.text)
                         }
                         Text(
-                            "${selectedMonth.month.getDisplayName(JavaTextStyle.FULL, Locale("pt", "BR")).uppercase()} ${selectedMonth.year}",
+                            "${selectedMonth.month.getDisplayName(JavaTextStyle.FULL, Locale.ENGLISH).uppercase()} ${selectedMonth.year}",
                             fontWeight = FontWeight.Bold, fontSize = 13.sp, color = AppTheme.text
                         )
                         IconButton(onClick = { selectedMonth = selectedMonth.plusMonths(1) }) {
-                            Icon(Icons.Default.ChevronRight, "Próximo mês", tint = AppTheme.text)
+                            Icon(Icons.Default.ChevronRight, "Next month", tint = AppTheme.text)
                         }
                     }
                     Spacer(Modifier.height(6.dp))
@@ -1364,7 +1410,7 @@ fun ConstancyTab(
                 editing = WorkoutHistory(
                     date = dateKey,
                     routineKey = key,
-                    routineTitle = base?.title ?: "( inserir )",
+                    routineTitle = base?.title ?: "( insert )",
                     exercises = base?.exercises?.map { it.copy(id = System.nanoTime().toString() + it.id) } ?: emptyList()
                 )
             },
@@ -1373,7 +1419,7 @@ fun ConstancyTab(
                 editing = WorkoutHistory(
                     date = dateKey,
                     routineKey = "",
-                    routineTitle = "Treino",
+                    routineTitle = "Workout",
                     exercises = emptyList()
                 )
             }
@@ -1396,16 +1442,16 @@ fun ConstancyTab(
         AlertDialog(
             onDismissRequest = { confirmDelete = null },
             containerColor = AppTheme.card,
-            title = { Text("Apagar treino?", color = AppTheme.text) },
-            text = { Text("O registro de $dateKey será removido permanentemente.", color = AppTheme.muted) },
+            title = { Text("Delete workout?", color = AppTheme.text) },
+            text = { Text("The record for $dateKey will be permanently removed.", color = AppTheme.muted) },
             confirmButton = {
                 TextButton(onClick = {
                     onDeleteWorkout(dateKey)
                     confirmDelete = null
-                }) { Text("Apagar", color = AppTheme.text) }
+                }) { Text("Delete", color = AppTheme.text) }
             },
             dismissButton = {
-                TextButton(onClick = { confirmDelete = null }) { Text("Cancelar", color = AppTheme.muted) }
+                TextButton(onClick = { confirmDelete = null }) { Text("Cancel", color = AppTheme.muted) }
             }
         )
     }
@@ -1440,13 +1486,13 @@ fun RoutinePickerBottomSheet(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text("Adicionar Treino em $dateKey", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = AppTheme.text)
+                    Text("Add Workout on $dateKey", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = AppTheme.text)
                     IconButton(onClick = onDismiss) {
-                        Icon(Icons.Default.Close, "Fechar", tint = AppTheme.muted)
+                        Icon(Icons.Default.Close, "Close", tint = AppTheme.muted)
                     }
                 }
                 Spacer(Modifier.height(4.dp))
-                Text("Escolha de qual ficha ou opção deseja carregar o treino:", fontSize = 12.sp, color = AppTheme.muted)
+                Text("Choose which template or option to load the workout from:", fontSize = 12.sp, color = AppTheme.muted)
                 Spacer(Modifier.height(8.dp))
 
                 Card(
@@ -1459,8 +1505,8 @@ fun RoutinePickerBottomSheet(
                         Icon(Icons.Default.Today, null, tint = AppTheme.text, modifier = Modifier.size(20.dp))
                         Spacer(Modifier.width(12.dp))
                         Column(modifier = Modifier.weight(1f)) {
-                            Text("Treino Padrão do Dia", fontWeight = FontWeight.Bold, fontSize = 13.sp, color = AppTheme.text)
-                            Text(defaultRoutine?.title ?: "(vazio)", fontSize = 11.sp, color = AppTheme.muted)
+                            Text("Default Day Workout", fontWeight = FontWeight.Bold, fontSize = 13.sp, color = AppTheme.text)
+                            Text(defaultRoutine?.title ?: "(empty)", fontSize = 11.sp, color = AppTheme.muted)
                         }
                         Icon(Icons.Default.ChevronRight, null, tint = AppTheme.muted, modifier = Modifier.size(16.dp))
                     }
@@ -1478,8 +1524,8 @@ fun RoutinePickerBottomSheet(
                         Icon(Icons.Default.Add, null, tint = AppTheme.text, modifier = Modifier.size(20.dp))
                         Spacer(Modifier.width(12.dp))
                         Column(modifier = Modifier.weight(1f)) {
-                            Text("Treino em Branco", fontWeight = FontWeight.Bold, fontSize = 13.sp, color = AppTheme.text)
-                            Text("Criar do zero manualmente", fontSize = 11.sp, color = AppTheme.muted)
+                            Text("Blank Workout", fontWeight = FontWeight.Bold, fontSize = 13.sp, color = AppTheme.text)
+                            Text("Create manually from scratch", fontSize = 11.sp, color = AppTheme.muted)
                         }
                         Icon(Icons.Default.ChevronRight, null, tint = AppTheme.muted, modifier = Modifier.size(16.dp))
                     }
@@ -1488,7 +1534,7 @@ fun RoutinePickerBottomSheet(
                 Spacer(Modifier.height(12.dp))
                 HorizontalDivider(color = AppTheme.border)
                 Spacer(Modifier.height(4.dp))
-                Text("OU ESCOLHER DE OUTRA FICHA:", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = AppTheme.muted)
+                Text("OR CHOOSE FROM ANOTHER TEMPLATE:", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = AppTheme.muted)
             }
 
             items(templates) { template ->
@@ -1515,7 +1561,7 @@ fun RoutinePickerBottomSheet(
                             Column(modifier = Modifier.weight(1f)) {
                                 Text(dayName, fontSize = 11.sp, color = AppTheme.muted)
                                 Text(routine.title, fontSize = 13.sp, fontWeight = FontWeight.Bold, color = AppTheme.text)
-                                Text("${routine.exercises.size} exercícios", fontSize = 10.sp, color = AppTheme.muted)
+                                Text("${routine.exercises.size} exercises", fontSize = 10.sp, color = AppTheme.muted)
                             }
                             Icon(Icons.Default.ChevronRight, null, tint = AppTheme.muted, modifier = Modifier.size(16.dp))
                         }
@@ -1624,7 +1670,7 @@ fun WeeklyBarChart(history: Map<String, WorkoutHistory>, monthlyRef: YearMonth) 
                 }
 
                 val isCurrentWeek = !today.isBefore(currentMonday) && !today.isAfter(weekSunday)
-                val label = if (isCurrentWeek) "Atual" else "Sem $weekNum"
+                val label = if (isCurrentWeek) "Current" else "Wk $weekNum"
 
                 list.add(Triple(label, count, isCurrentWeek))
                 currentMonday = currentMonday.plusWeeks(1)
@@ -1636,7 +1682,7 @@ fun WeeklyBarChart(history: Map<String, WorkoutHistory>, monthlyRef: YearMonth) 
 
     if (weeksData.isEmpty()) {
         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            Text("Sem dados", fontSize = 12.sp, color = AppTheme.muted)
+            Text("No data", fontSize = 12.sp, color = AppTheme.muted)
         }
         return
     }
@@ -1695,7 +1741,7 @@ fun CalendarGrid(
     val firstDay = selectedMonth.atDay(1)
     val daysInMonth = selectedMonth.lengthOfMonth()
     val startingWeekday = (firstDay.dayOfWeek.value - 1 + 7) % 7
-    val weekHeaders = listOf("S", "T", "Q", "Q", "S", "S", "D")
+    val weekHeaders = listOf("M", "T", "W", "T", "F", "S", "S")
     val today = fmt(LocalDate.now())
 
     Column {
@@ -1766,16 +1812,16 @@ fun DayDetailCard(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text("Dia $dateKey", fontWeight = FontWeight.Bold, fontSize = 12.sp, color = AppTheme.text)
+                Text("Day $dateKey", fontWeight = FontWeight.Bold, fontSize = 12.sp, color = AppTheme.text)
                 IconButton(onClick = onClose, modifier = Modifier.size(30.dp)) {
-                    Icon(Icons.Default.Close, "Fechar", tint = AppTheme.muted, modifier = Modifier.size(15.dp))
+                    Icon(Icons.Default.Close, "Close", tint = AppTheme.muted, modifier = Modifier.size(15.dp))
                 }
             }
             HorizontalDivider(color = AppTheme.border)
             Spacer(Modifier.height(8.dp))
 
             if (historyItem == null) {
-                Text("Nenhum treino registrado neste dia.", color = AppTheme.muted, fontSize = 12.sp)
+                Text("No workout registered on this day.", color = AppTheme.muted, fontSize = 12.sp)
                 Spacer(Modifier.height(10.dp))
                 Button(
                     onClick = onAdd,
@@ -1784,7 +1830,7 @@ fun DayDetailCard(
                 ) {
                     Icon(Icons.Default.Add, null, tint = Color.Black, modifier = Modifier.size(15.dp))
                     Spacer(Modifier.width(6.dp))
-                    Text("Adicionar treino neste dia", color = Color.Black, fontWeight = FontWeight.Bold)
+                    Text("Add workout on this day", color = Color.Black, fontWeight = FontWeight.Bold)
                 }
             } else {
                 Text(historyItem.routineTitle, fontWeight = FontWeight.Bold, fontSize = 14.sp, color = AppTheme.text)
@@ -1794,12 +1840,12 @@ fun DayDetailCard(
                         modifier = Modifier.fillMaxWidth().padding(vertical = 2.dp),
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
-                        Text(ex.name.ifBlank { "Exercício" }, fontSize = 11.sp, color = AppTheme.text)
+                        Text(ex.name.ifBlank { "Exercise" }, fontSize = 11.sp, color = AppTheme.text)
                         Text("${ex.sets}x${ex.reps} • ${trimNumber(ex.weight)}kg", fontSize = 11.sp, color = AppTheme.muted)
                     }
                 }
                 if (historyItem.exercises.isEmpty()) {
-                    Text("Sem exercícios neste registro.", fontSize = 11.sp, color = AppTheme.muted)
+                    Text("No exercises in this record.", fontSize = 11.sp, color = AppTheme.muted)
                 }
                 Spacer(Modifier.height(10.dp))
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -1811,7 +1857,7 @@ fun DayDetailCard(
                     ) {
                         Icon(Icons.Default.Edit, null, tint = AppTheme.text, modifier = Modifier.size(15.dp))
                         Spacer(Modifier.width(6.dp))
-                        Text("Editar", color = AppTheme.text)
+                        Text("Edit", color = AppTheme.text)
                     }
                     Button(
                         onClick = onDelete,
@@ -1821,7 +1867,7 @@ fun DayDetailCard(
                     ) {
                         Icon(Icons.Default.Delete, null, tint = AppTheme.text, modifier = Modifier.size(15.dp))
                         Spacer(Modifier.width(6.dp))
-                        Text("Apagar", color = AppTheme.text)
+                        Text("Delete", color = AppTheme.text)
                     }
                 }
             }
@@ -1848,7 +1894,7 @@ fun HistoryEditModal(
             verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
             item {
-                Text("Treino de ${item.date}", fontSize = 11.sp, color = AppTheme.muted)
+                Text("Workout on ${item.date}", fontSize = 11.sp, color = AppTheme.muted)
                 Spacer(Modifier.height(4.dp))
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     OutlinedTextField(
@@ -1856,7 +1902,7 @@ fun HistoryEditModal(
                         onValueChange = { title = it },
                         modifier = Modifier.weight(1f),
                         singleLine = true,
-                        label = { Text("Nome do treino", color = AppTheme.muted) },
+                        label = { Text("Workout name", color = AppTheme.muted) },
                         textStyle = TextStyle(fontSize = 16.sp, fontWeight = FontWeight.Bold, color = AppTheme.text),
                         keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
                         colors = OutlinedTextFieldDefaults.colors(
@@ -1866,7 +1912,7 @@ fun HistoryEditModal(
                         )
                     )
                     IconButton(onClick = onDismiss) {
-                        Icon(Icons.Default.Close, "Fechar", tint = AppTheme.muted)
+                        Icon(Icons.Default.Close, "Close", tint = AppTheme.muted)
                     }
                 }
             }
@@ -1880,12 +1926,12 @@ fun HistoryEditModal(
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Icon(Icons.Default.FitnessCenter, null, tint = AppTheme.text, modifier = Modifier.size(15.dp))
                         Spacer(Modifier.width(6.dp))
-                        Text("Exercícios", fontWeight = FontWeight.Bold, fontSize = 13.sp, color = AppTheme.text)
+                        Text("Exercises", fontWeight = FontWeight.Bold, fontSize = 13.sp, color = AppTheme.text)
                     }
                     TextButton(onClick = { exercises.add(Exercise()) }) {
                         Icon(Icons.Default.Add, null, tint = AppTheme.text, modifier = Modifier.size(15.dp))
                         Spacer(Modifier.width(2.dp))
-                        Text("Adicionar", color = AppTheme.text, fontSize = 12.sp)
+                        Text("Add", color = AppTheme.text, fontSize = 12.sp)
                     }
                 }
                 HorizontalDivider(color = AppTheme.border)
@@ -1895,8 +1941,16 @@ fun HistoryEditModal(
                 val idx = exercises.indexOf(ex)
                 ExerciseCardItem(
                     exercise = ex,
+                    index = idx,
+                    totalItems = exercises.size,
                     onChanged = { updated -> if (idx in exercises.indices) exercises[idx] = updated },
-                    onDelete = { if (idx in exercises.indices) exercises.removeAt(idx) }
+                    onDelete = { if (idx in exercises.indices) exercises.removeAt(idx) },
+                    onMove = { from, to ->
+                        if (from in exercises.indices && to in exercises.indices) {
+                            val item = exercises.removeAt(from)
+                            exercises.add(to, item)
+                        }
+                    }
                 )
             }
 
@@ -1904,14 +1958,14 @@ fun HistoryEditModal(
                 Spacer(Modifier.height(6.dp))
                 Button(
                     onClick = {
-                        onSave(item.copy(routineTitle = title.ifBlank { "( inserir )" }, exercises = exercises.toList()))
+                        onSave(item.copy(routineTitle = title.ifBlank { "( insert )" }, exercises = exercises.toList()))
                     },
                     colors = ButtonDefaults.buttonColors(containerColor = AppTheme.text),
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Icon(Icons.Default.Save, null, tint = Color.Black, modifier = Modifier.size(15.dp))
                     Spacer(Modifier.width(6.dp))
-                    Text("Salvar registro", color = Color.Black, fontWeight = FontWeight.Bold)
+                    Text("Save record", color = Color.Black, fontWeight = FontWeight.Bold)
                 }
                 Spacer(Modifier.height(32.dp))
             }
