@@ -674,18 +674,22 @@ fun RoutinesTab(
                             .pointerInput(index) {
                                 detectDragGestures(
                                     onDragStart = { isDragging = true },
-                                    onDragEnd = { isDragging = false; dragOffset = 0f },
-                                    onDragCancel = { isDragging = false; dragOffset = 0f },
+                                    onDragEnd = {
+                                        isDragging = false
+                                        val shift = kotlin.math.round(dragOffset / itemHeightPx).toInt()
+                                        val targetIndex = (index + shift).coerceIn(0, WEEK_DAYS.size - 1)
+                                        if (targetIndex != index) {
+                                            onSwapRoutines(index, targetIndex)
+                                        }
+                                        dragOffset = 0f
+                                    },
+                                    onDragCancel = {
+                                        isDragging = false
+                                        dragOffset = 0f
+                                    },
                                     onDrag = { change, dragAmount ->
                                         change.consume()
                                         dragOffset += dragAmount.y
-                                        if (dragOffset > itemHeightPx && index < WEEK_DAYS.size - 1) {
-                                            onSwapRoutines(index, index + 1)
-                                            dragOffset -= itemHeightPx
-                                        } else if (dragOffset < -itemHeightPx && index > 0) {
-                                            onSwapRoutines(index, index - 1)
-                                            dragOffset += itemHeightPx
-                                        }
                                     }
                                 )
                             }
@@ -1111,18 +1115,22 @@ fun LazyItemScope.ExerciseCardItem(
                         .pointerInput(index) {
                             detectDragGestures(
                                 onDragStart = { isDragging = true },
-                                onDragEnd = { isDragging = false; dragOffset = 0f },
-                                onDragCancel = { isDragging = false; dragOffset = 0f },
+                                onDragEnd = {
+                                    isDragging = false
+                                    val shift = kotlin.math.round(dragOffset / itemHeightPx).toInt()
+                                    val targetIndex = (index + shift).coerceIn(0, totalItems - 1)
+                                    if (targetIndex != index) {
+                                        onMove(index, targetIndex)
+                                    }
+                                    dragOffset = 0f
+                                },
+                                onDragCancel = {
+                                    isDragging = false
+                                    dragOffset = 0f
+                                },
                                 onDrag = { change, dragAmount ->
                                     change.consume()
                                     dragOffset += dragAmount.y
-                                    if (dragOffset > itemHeightPx && index < totalItems - 1) {
-                                        onMove(index, index + 1)
-                                        dragOffset -= itemHeightPx
-                                    } else if (dragOffset < -itemHeightPx && index > 0) {
-                                        onMove(index, index - 1)
-                                        dragOffset += itemHeightPx
-                                    }
                                 }
                             )
                         }
