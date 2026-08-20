@@ -33,6 +33,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -519,6 +520,7 @@ fun ExerciseCardItem(
                     singleLine = true,
                     placeholder = { Text("Nome do Exercício", color = AppTheme.muted, fontSize = 12.sp) },
                     textStyle = TextStyle(fontSize = 12.sp, fontWeight = FontWeight.Bold, color = AppTheme.text),
+                    keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
                     colors = OutlinedTextFieldDefaults.colors(
                         focusedBorderColor = AppTheme.text,
                         unfocusedBorderColor = AppTheme.border,
@@ -608,6 +610,7 @@ fun RoutineEditModal(
                     singleLine = true,
                     label = { Text("Nome do treino", color = AppTheme.muted) },
                     textStyle = TextStyle(fontSize = 16.sp, fontWeight = FontWeight.Bold, color = AppTheme.text),
+                    keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
                     colors = OutlinedTextFieldDefaults.colors(
                         focusedBorderColor = AppTheme.text,
                         unfocusedBorderColor = AppTheme.border,
@@ -1130,6 +1133,7 @@ fun HistoryEditModal(
                     singleLine = true,
                     label = { Text("Nome do treino", color = AppTheme.muted) },
                     textStyle = TextStyle(fontSize = 16.sp, fontWeight = FontWeight.Bold, color = AppTheme.text),
+                    keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
                     colors = OutlinedTextFieldDefaults.colors(
                         focusedBorderColor = AppTheme.text,
                         unfocusedBorderColor = AppTheme.border,
