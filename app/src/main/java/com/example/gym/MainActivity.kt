@@ -17,6 +17,7 @@ import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -33,6 +34,7 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardCapitalization
@@ -66,7 +68,7 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-// --- CUSTOM THEME ---[cite: 1, 2]
+// --- CUSTOM THEME ---
 object AppTheme {
     val bg = Color(0xFF121212)
     val card = Color(0xFF121212)
@@ -90,7 +92,7 @@ fun GymTheme(content: @Composable () -> Unit) {
     )
 }
 
-// --- MODELS ---[cite: 1, 2]
+// --- MODELS ---
 data class Exercise(
     val id: String = System.nanoTime().toString(),
     val name: String = "",
@@ -184,7 +186,7 @@ data class WorkoutHistory(
     }
 }
 
-// --- OPTIMIZED PERSISTENCE ---[cite: 1, 2]
+// --- OPTIMIZED PERSISTENCE ---
 object Store {
     private const val PREFS = "gym_store"
     private const val KEY_ROUTINES = "routines"
@@ -286,7 +288,7 @@ val WEEK_DAYS = listOf(
 
 fun routineKeyForDate(date: LocalDate): String = DAY_KEYS[date.dayOfWeek.value - 1]
 
-// --- MAIN SCREEN ---[cite: 1, 2]
+// --- MAIN SCREEN ---
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun MainHomeScreen() {
@@ -436,6 +438,14 @@ fun MainHomeScreen() {
                                 routines[key] = routine
                                 persistRoutines()
                             },
+                            onSwapRoutines = { fromIndex, toIndex ->
+                                val keyFrom = WEEK_DAYS[fromIndex].key
+                                val keyTo = WEEK_DAYS[toIndex].key
+                                val temp = routines[keyFrom] ?: Routine("( insert )")
+                                routines[keyFrom] = routines[keyTo] ?: Routine("( insert )")
+                                routines[keyTo] = temp
+                                persistRoutines()
+                            },
                             onCompleteToday = { key, routine ->
                                 history[todayStr] = WorkoutHistory(todayStr, key, routine.title, routine.exercises)
                                 persistHistory()
@@ -477,6 +487,7 @@ fun RoutinesTab(
     onDeleteTemplate: (String) -> Unit,
     onUpdateTemplate: (String, WorkoutTemplate) -> Unit,
     onRoutineUpdated: (String, Routine) -> Unit,
+    onSwapRoutines: (Int, Int) -> Unit,
     onCompleteToday: (String, Routine) -> Unit
 ) {
     var editingKey by remember { mutableStateOf<String?>(null) }
@@ -484,6 +495,7 @@ fun RoutinesTab(
     var showCreateModal by remember { mutableStateOf(false) }
     var editingTemplate by remember { mutableStateOf<WorkoutTemplate?>(null) }
     val todayShort = WEEK_DAYS.first { it.key == todayKey }.short
+    val itemHeightPx = with(LocalDensity.current) { 72.dp.toPx() }
 
     LazyColumn(
         modifier = Modifier.fillMaxSize().padding(16.dp),
@@ -578,10 +590,11 @@ fun RoutinesTab(
             }
         }
 
-        items(WEEK_DAYS, key = { it.key }) { day ->
+        itemsIndexed(WEEK_DAYS, key = { _, day -> day.key }) { index, day ->
             val routine = routines[day.key] ?: Routine("( insert )")
             val isToday = day.key == todayKey
             val isDoneToday = isToday && history.containsKey(formattedToday)
+            var dragOffset by remember { mutableStateOf(0f) }
 
             Card(
                 colors = CardDefaults.cardColors(containerColor = AppTheme.card),
@@ -590,7 +603,10 @@ fun RoutinesTab(
                     width = if (isToday) 1.5.dp else 1.dp,
                     color = if (isToday) AppTheme.text.copy(alpha = 0.6f) else AppTheme.border
                 ),
-                modifier = Modifier.fillMaxWidth().clickable { editingKey = day.key }
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .graphicsLayer { translationY = dragOffset }
+                    .clickable { editingKey = day.key }
             ) {
                 Row(modifier = Modifier.padding(14.dp), verticalAlignment = Alignment.CenterVertically) {
                     Box(
@@ -636,7 +652,35 @@ fun RoutinesTab(
                         Icon(Icons.Default.CheckCircle, null, tint = AppTheme.text, modifier = Modifier.size(18.dp))
                         Spacer(Modifier.width(6.dp))
                     }
-                    Icon(Icons.Default.ChevronRight, null, tint = AppTheme.muted, modifier = Modifier.size(16.dp))
+
+                    Spacer(Modifier.width(4.dp))
+
+                    // Ícone de arrastar fluido posicionado na direita
+                    Icon(
+                        imageVector = Icons.Default.DragHandle,
+                        contentDescription = "Drag to reorder day workout",
+                        tint = AppTheme.muted,
+                        modifier = Modifier
+                            .size(24.dp)
+                            .pointerInput(index) {
+                                detectDragGestures(
+                                    onDragStart = { },
+                                    onDragEnd = { dragOffset = 0f },
+                                    onDragCancel = { dragOffset = 0f },
+                                    onDrag = { change, dragAmount ->
+                                        change.consume()
+                                        dragOffset += dragAmount.y
+                                        if (dragOffset > itemHeightPx && index < WEEK_DAYS.size - 1) {
+                                            onSwapRoutines(index, index + 1)
+                                            dragOffset -= itemHeightPx
+                                        } else if (dragOffset < -itemHeightPx && index > 0) {
+                                            onSwapRoutines(index, index - 1)
+                                            dragOffset += itemHeightPx
+                                        }
+                                    }
+                                )
+                            }
+                    )
                 }
             }
         }
@@ -993,6 +1037,7 @@ fun ExerciseCardItem(
 ) {
     var expanded by remember { mutableStateOf(false) }
     var dragOffset by remember { mutableStateOf(0f) }
+    val itemHeightPx = with(LocalDensity.current) { 56.dp.toPx() }
 
     Card(
         colors = CardDefaults.cardColors(containerColor = AppTheme.hover),
@@ -1005,34 +1050,6 @@ fun ExerciseCardItem(
     ) {
         Column(modifier = Modifier.padding(10.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                // Ícone e gesto para segurar e arrastar
-                Icon(
-                    imageVector = Icons.Default.DragHandle,
-                    contentDescription = "Drag to reorder",
-                    tint = AppTheme.muted,
-                    modifier = Modifier
-                        .size(24.dp)
-                        .pointerInput(index) {
-                            detectDragGestures(
-                                onDragStart = { },
-                                onDragEnd = { dragOffset = 0f },
-                                onDragCancel = { dragOffset = 0f },
-                                onDrag = { change, dragAmount ->
-                                    change.consume()
-                                    dragOffset += dragAmount.y
-                                    if (dragOffset > 70f && index < totalItems - 1) {
-                                        onMove(index, index + 1)
-                                        dragOffset = 0f
-                                    } else if (dragOffset < -70f && index > 0) {
-                                        onMove(index, index - 1)
-                                        dragOffset = 0f
-                                    }
-                                }
-                            )
-                        }
-                )
-                Spacer(Modifier.width(8.dp))
-
                 if (expanded) {
                     OutlinedTextField(
                         value = exercise.name,
@@ -1050,7 +1067,7 @@ fun ExerciseCardItem(
                     )
                 } else {
                     Text(
-                        text = exercise.name.ifBlank { "Empity" },
+                        text = exercise.name.ifBlank { "Empty" },
                         modifier = Modifier.weight(1f).padding(vertical = 12.dp),
                         style = TextStyle(fontSize = 12.sp, fontWeight = FontWeight.Bold, color = if (exercise.name.isBlank()) AppTheme.muted else AppTheme.text)
                     )
@@ -1070,6 +1087,32 @@ fun ExerciseCardItem(
                 IconButton(onClick = onDelete, modifier = Modifier.size(36.dp)) {
                     Icon(Icons.Default.Delete, "Delete", tint = AppTheme.muted, modifier = Modifier.size(18.dp))
                 }
+                Spacer(Modifier.width(4.dp))
+                Icon(
+                    imageVector = Icons.Default.DragHandle,
+                    contentDescription = "Drag to reorder",
+                    tint = AppTheme.muted,
+                    modifier = Modifier
+                        .size(24.dp)
+                        .pointerInput(index) {
+                            detectDragGestures(
+                                onDragStart = { },
+                                onDragEnd = { dragOffset = 0f },
+                                onDragCancel = { dragOffset = 0f },
+                                onDrag = { change, dragAmount ->
+                                    change.consume()
+                                    dragOffset += dragAmount.y
+                                    if (dragOffset > itemHeightPx && index < totalItems - 1) {
+                                        onMove(index, index + 1)
+                                        dragOffset -= itemHeightPx
+                                    } else if (dragOffset < -itemHeightPx && index > 0) {
+                                        onMove(index, index - 1)
+                                        dragOffset += itemHeightPx
+                                    }
+                                }
+                            )
+                        }
+                )
             }
             if (expanded) {
                 Spacer(Modifier.height(6.dp))
