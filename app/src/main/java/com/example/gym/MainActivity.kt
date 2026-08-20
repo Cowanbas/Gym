@@ -514,7 +514,18 @@ fun NumberInputField(
     decimal: Boolean = false,
     onChanged: (String) -> Unit
 ) {
-    var text by remember(value) { mutableStateOf(value) }
+    var text by remember { mutableStateOf(value) }
+
+    LaunchedEffect(value) {
+        if (value != text) {
+            val currentNum = text.replace(',', '.').toDoubleOrNull() ?: 0.0
+            val externalNum = value.replace(',', '.').toDoubleOrNull() ?: 0.0
+            if (currentNum != externalNum) {
+                text = value
+            }
+        }
+    }
+
     Column(modifier = modifier) {
         Text(label, fontSize = 10.sp, color = AppTheme.muted)
         Spacer(Modifier.height(2.dp))
