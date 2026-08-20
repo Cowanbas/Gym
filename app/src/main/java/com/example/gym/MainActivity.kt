@@ -129,6 +129,30 @@ data class Routine(
     }
 }
 
+data class WorkoutTemplate(
+    val name: String,
+    val routines: Map<String, Routine>
+) {
+    fun toJson(): JSONObject = JSONObject().apply {
+        put("name", name)
+        val obj = JSONObject()
+        routines.forEach { (k, v) -> obj.put(k, v.toJson()) }
+        put("routines", obj)
+    }
+
+    companion object {
+        fun fromJson(json: JSONObject): WorkoutTemplate {
+            val name = json.optString("name", "Ficha")
+            val routinesObj = json.optJSONObject("routines") ?: JSONObject()
+            val map = mutableMapOf<String, Routine>()
+            routinesObj.keys().forEach { k ->
+                map[k] = Routine.fromJson(routinesObj.getJSONObject(k))
+            }
+            return WorkoutTemplate(name, map.ifEmpty { Store.defaultRoutines() })
+        }
+    }
+}
+
 data class WorkoutHistory(
     val date: String,
     val routineKey: String = "",
@@ -162,6 +186,8 @@ object Store {
     private const val PREFS = "gym_store"
     private const val KEY_ROUTINES = "routines"
     private const val KEY_HISTORY = "history"
+    private const val KEY_TEMPLATES = "templates"
+    private const val KEY_ACTIVE_TEMPLATE = "active_template"
 
     private fun prefs(ctx: Context) = ctx.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
 
@@ -173,6 +199,22 @@ object Store {
                 obj.keys().forEach { k -> put(k, Routine.fromJson(obj.getJSONObject(k))) }
             }
         }.getOrNull()
+    }
+
+    suspend fun loadTemplates(ctx: Context): List<WorkoutTemplate>? = withContext(Dispatchers.IO) {
+        val raw = prefs(ctx).getString(KEY_TEMPLATES, null) ?: return@withContext null
+        runCatching {
+            val arr = JSONArray(raw)
+            val list = mutableListOf<WorkoutTemplate>()
+            for (i in 0 until arr.length()) {
+                list.add(WorkoutTemplate.fromJson(arr.getJSONObject(i)))
+            }
+            list.ifEmpty { null }
+        }.getOrNull()
+    }
+
+    suspend fun loadActiveTemplateName(ctx: Context): String = withContext(Dispatchers.IO) {
+        prefs(ctx).getString(KEY_ACTIVE_TEMPLATE, "Ficha A") ?: "Ficha A"
     }
 
     suspend fun loadHistory(ctx: Context): Map<String, WorkoutHistory> = withContext(Dispatchers.IO) {
@@ -191,6 +233,16 @@ object Store {
         prefs(ctx).edit().putString(KEY_ROUTINES, obj.toString()).apply()
     }
 
+    suspend fun saveTemplates(ctx: Context, templates: List<WorkoutTemplate>) = withContext(Dispatchers.IO) {
+        val arr = JSONArray()
+        templates.forEach { arr.put(it.toJson()) }
+        prefs(ctx).edit().putString(KEY_TEMPLATES, arr.toString()).apply()
+    }
+
+    suspend fun saveActiveTemplateName(ctx: Context, name: String) = withContext(Dispatchers.IO) {
+        prefs(ctx).edit().putString(KEY_ACTIVE_TEMPLATE, name).apply()
+    }
+
     suspend fun saveHistory(ctx: Context, history: Map<String, WorkoutHistory>) = withContext(Dispatchers.IO) {
         val obj = JSONObject()
         history.forEach { (k, v) -> obj.put(k, v.toJson()) }
@@ -205,6 +257,11 @@ object Store {
         "sexta" to Routine("( inserir )", emptyList()),
         "sabado" to Routine("( inserir )", emptyList()),
         "domingo" to Routine("( inserir )", emptyList())
+    )
+
+    fun defaultTemplates(): List<WorkoutTemplate> = listOf(
+        WorkoutTemplate("Ficha A", defaultRoutines()),
+        WorkoutTemplate("Ficha B", defaultRoutines())
     )
 }
 
@@ -234,6 +291,8 @@ fun MainHomeScreen() {
     val pagerState = rememberPagerState(pageCount = { 2 })
 
     val routines = remember { mutableStateMapOf<String, Routine>() }
+    val templates = remember { mutableStateListOf<WorkoutTemplate>() }
+    var activeTemplateName by remember { mutableStateOf("Ficha A") }
     val history = remember { mutableStateMapOf<String, WorkoutHistory>() }
     var loaded by remember { mutableStateOf(false) }
 
@@ -241,14 +300,32 @@ fun MainHomeScreen() {
     val scope = rememberCoroutineScope()
 
     LaunchedEffect(Unit) {
-        val loadedRoutines = Store.loadRoutines(context) ?: Store.defaultRoutines()
+        val loadedTemplates = Store.loadTemplates(context) ?: Store.defaultTemplates()
+        val loadedActiveName = Store.loadActiveTemplateName(context)
+        val loadedRoutines = Store.loadRoutines(context) ?: loadedTemplates.find { it.name == loadedActiveName }?.routines ?: Store.defaultRoutines()
         val loadedHistory = Store.loadHistory(context)
+
+        templates.clear()
+        templates.addAll(loadedTemplates)
+        activeTemplateName = loadedActiveName
         routines.putAll(loadedRoutines)
         history.putAll(loadedHistory)
         loaded = true
     }
 
-    fun persistRoutines() = scope.launch { Store.saveRoutines(context, routines.toMap()) }
+    fun persistRoutines() {
+        scope.launch {
+            Store.saveRoutines(context, routines.toMap())
+            // Also update current active template
+            val idx = templates.indexOfFirst { it.name == activeTemplateName }
+            if (idx >= 0) {
+                templates[idx] = WorkoutTemplate(activeTemplateName, routines.toMap())
+                Store.saveTemplates(context, templates.toList())
+            }
+        }
+    }
+
+    fun persistTemplates() = scope.launch { Store.saveTemplates(context, templates.toList()) }
     fun persistHistory() = scope.launch { Store.saveHistory(context, history.toMap()) }
     fun toast(msg: String) = scope.launch { snackbarHostState.showSnackbar(msg) }
 
@@ -303,6 +380,30 @@ fun MainHomeScreen() {
                             history = history,
                             todayKey = todayKey,
                             formattedToday = todayStr,
+                            templates = templates,
+                            activeTemplateName = activeTemplateName,
+                            onSelectTemplate = { name ->
+                                activeTemplateName = name
+                                scope.launch { Store.saveActiveTemplateName(context, name) }
+                                val t = templates.find { it.name == name }
+                                if (t != null) {
+                                    routines.clear()
+                                    routines.putAll(t.routines)
+                                    persistRoutines()
+                                    toast("Ficha $name aplicada!")
+                                }
+                            },
+                            onCreateTemplate = { newName, newRoutines ->
+                                val newT = WorkoutTemplate(newName, newRoutines)
+                                templates.add(newT)
+                                persistTemplates()
+                                activeTemplateName = newName
+                                scope.launch { Store.saveActiveTemplateName(context, newName) }
+                                routines.clear()
+                                routines.putAll(newRoutines)
+                                persistRoutines()
+                                toast("Ficha $newName criada e aplicada!")
+                            },
                             onRoutineUpdated = { key, routine ->
                                 routines[key] = routine
                                 persistRoutines()
@@ -344,10 +445,16 @@ fun RoutinesTab(
     history: Map<String, WorkoutHistory>,
     todayKey: String,
     formattedToday: String,
+    templates: List<WorkoutTemplate>,
+    activeTemplateName: String,
+    onSelectTemplate: (String) -> Unit,
+    onCreateTemplate: (String, Map<String, Routine>) -> Unit,
     onRoutineUpdated: (String, Routine) -> Unit,
     onCompleteToday: (String, Routine) -> Unit
 ) {
     var editingKey by remember { mutableStateOf<String?>(null) }
+    var menuExpanded by remember { mutableStateOf(false) }
+    var showCreateModal by remember { mutableStateOf(false) }
     val todayShort = WEEK_DAYS.first { it.key == todayKey }.short
 
     LazyColumn(
@@ -360,14 +467,65 @@ fun RoutinesTab(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text("Treinos da Semana", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = AppTheme.text)
-                Box(
-                    modifier = Modifier
-                        .background(AppTheme.hover, RoundedCornerShape(20.dp))
-                        .border(1.dp, AppTheme.border, RoundedCornerShape(20.dp))
-                        .padding(horizontal = 10.dp, vertical = 4.dp)
-                ) {
-                    Text("Hoje: $todayShort", fontSize = 12.sp, color = AppTheme.text, fontWeight = FontWeight.Bold)
+                Column {
+                    Text("Treinos da Semana", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = AppTheme.text)
+                    Text("Ativa: $activeTemplateName", fontSize = 11.sp, color = AppTheme.muted)
+                }
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    Box(
+                        modifier = Modifier
+                            .background(AppTheme.hover, RoundedCornerShape(20.dp))
+                            .border(1.dp, AppTheme.border, RoundedCornerShape(20.dp))
+                            .padding(horizontal = 10.dp, vertical = 4.dp)
+                    ) {
+                        Text("Hoje: $todayShort", fontSize = 12.sp, color = AppTheme.text, fontWeight = FontWeight.Bold)
+                    }
+
+                    Box {
+                        IconButton(
+                            onClick = { menuExpanded = true },
+                            modifier = Modifier.size(36.dp)
+                        ) {
+                            Icon(Icons.Default.MoreVert, contentDescription = "Fichas de Treino", tint = AppTheme.text)
+                        }
+                        DropdownMenu(
+                            expanded = menuExpanded,
+                            onDismissRequest = { menuExpanded = false },
+                            modifier = Modifier.background(AppTheme.card).border(1.dp, AppTheme.border, RoundedCornerShape(8.dp))
+                        ) {
+                            templates.forEach { template ->
+                                DropdownMenuItem(
+                                    text = {
+                                        Row(verticalAlignment = Alignment.CenterVertically) {
+                                            if (template.name == activeTemplateName) {
+                                                Icon(Icons.Default.Check, null, tint = AppTheme.text, modifier = Modifier.size(16.dp))
+                                                Spacer(Modifier.width(6.dp))
+                                            }
+                                            Text(template.name, color = AppTheme.text, fontWeight = if (template.name == activeTemplateName) FontWeight.Bold else FontWeight.Normal)
+                                        }
+                                    },
+                                    onClick = {
+                                        menuExpanded = false
+                                        onSelectTemplate(template.name)
+                                    }
+                                )
+                            }
+                            HorizontalDivider(color = AppTheme.border)
+                            DropdownMenuItem(
+                                text = {
+                                    Row(verticalAlignment = Alignment.CenterVertically) {
+                                        Icon(Icons.Default.Add, null, tint = AppTheme.text, modifier = Modifier.size(16.dp))
+                                        Spacer(Modifier.width(6.dp))
+                                        Text("Criar", color = AppTheme.text, fontWeight = FontWeight.Bold)
+                                    }
+                                },
+                                onClick = {
+                                    menuExpanded = false
+                                    showCreateModal = true
+                                }
+                            )
+                        }
+                    }
                 }
             }
         }
@@ -451,6 +609,130 @@ fun RoutinesTab(
                 onRoutineUpdated(key, updated)
                 onCompleteToday(key, updated)
                 editingKey = null
+            }
+        )
+    }
+
+    if (showCreateModal) {
+        CreateTemplateModal(
+            onDismiss = { showCreateModal = false },
+            onSave = { name, newRoutines ->
+                onCreateTemplate(name, newRoutines)
+                showCreateModal = false
+            }
+        )
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun CreateTemplateModal(
+    onDismiss: () -> Unit,
+    onSave: (String, Map<String, Routine>) -> Unit
+) {
+    var templateName by remember { mutableStateOf("") }
+    val routinesMap = remember {
+        mutableStateMapOf<String, Routine>().apply {
+            putAll(Store.defaultRoutines())
+        }
+    }
+    var editingDayKey by remember { mutableStateOf<String?>(null) }
+
+    ModalBottomSheet(onDismissRequest = onDismiss, containerColor = AppTheme.card) {
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxWidth()
+                .fillMaxHeight(0.85f)
+                .padding(horizontal = 16.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            item {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text("Criar Nova Ficha", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = AppTheme.text)
+                    IconButton(onClick = onDismiss) {
+                        Icon(Icons.Default.Close, "Fechar", tint = AppTheme.muted)
+                    }
+                }
+                Spacer(Modifier.height(6.dp))
+                OutlinedTextField(
+                    value = templateName,
+                    onValueChange = { templateName = it },
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true,
+                    label = { Text("Nome da Ficha (ex: Ficha C)", color = AppTheme.muted) },
+                    textStyle = TextStyle(fontSize = 14.sp, color = AppTheme.text),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = AppTheme.text,
+                        unfocusedBorderColor = AppTheme.border,
+                        cursorColor = AppTheme.text
+                    )
+                )
+            }
+
+            item {
+                Spacer(Modifier.height(4.dp))
+                Text("Defina os treinos para os dias da semana:", fontSize = 12.sp, color = AppTheme.muted, fontWeight = FontWeight.Bold)
+            }
+
+            items(WEEK_DAYS, key = { it.key }) { day ->
+                val routine = routinesMap[day.key] ?: Routine("( inserir )")
+                Card(
+                    colors = CardDefaults.cardColors(containerColor = AppTheme.hover),
+                    shape = RoundedCornerShape(8.dp),
+                    border = BorderStroke(1.dp, AppTheme.border),
+                    modifier = Modifier.fillMaxWidth().clickable { editingDayKey = day.key }
+                ) {
+                    Row(
+                        modifier = Modifier.padding(12.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(day.name, fontSize = 11.sp, color = AppTheme.muted, fontWeight = FontWeight.Bold)
+                            Text(routine.title, fontSize = 13.sp, color = AppTheme.text, fontWeight = FontWeight.Bold)
+                            Text("${routine.exercises.size} exercícios", fontSize = 10.sp, color = AppTheme.muted)
+                        }
+                        Icon(Icons.Default.Edit, null, tint = AppTheme.muted, modifier = Modifier.size(16.dp))
+                    }
+                }
+            }
+
+            item {
+                Spacer(Modifier.height(10.dp))
+                Button(
+                    onClick = {
+                        val name = templateName.ifBlank { "Nova Ficha" }
+                        onSave(name, routinesMap.toMap())
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = AppTheme.text),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Icon(Icons.Default.Check, null, tint = Color.Black, modifier = Modifier.size(15.dp))
+                    Spacer(Modifier.width(6.dp))
+                    Text("Salvar e Aplicar Ficha", color = Color.Black, fontWeight = FontWeight.Bold)
+                }
+                Spacer(Modifier.height(32.dp))
+            }
+        }
+    }
+
+    editingDayKey?.let { dayKey ->
+        val routine = routinesMap[dayKey] ?: Routine("( inserir )")
+        RoutineEditModal(
+            routine = routine,
+            isToday = false,
+            onDismiss = { editingDayKey = null },
+            onSave = { updated ->
+                routinesMap[dayKey] = updated
+                editingDayKey = null
+            },
+            onComplete = { updated ->
+                routinesMap[dayKey] = updated
+                editingDayKey = null
             }
         )
     }
@@ -568,7 +850,6 @@ fun RoutineEditModal(
             modifier = Modifier
                 .fillMaxWidth()
                 .fillMaxHeight(0.85f)
-                // .imePadding() REMOVIDO AQUI PARA EVITAR O DUPLO DESLOCAMENTO DO TECLADO
                 .padding(horizontal = 16.dp),
             verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
@@ -957,12 +1238,11 @@ fun WeeklyBarChart(history: Map<String, WorkoutHistory>, monthlyRef: YearMonth) 
                 Text("${count}d", fontSize = 10.sp, color = AppTheme.text, fontWeight = FontWeight.Bold)
                 Spacer(Modifier.height(4.dp))
 
-                // Container fixo que trava a base da barra no mesmo nível para todas
                 Box(
                     modifier = Modifier
                         .width(22.dp)
                         .height(55.dp),
-                    contentAlignment = Alignment.BottomCenter // Corrigido aqui
+                    contentAlignment = Alignment.BottomCenter
                 ) {
                     Box(
                         modifier = Modifier
@@ -1146,7 +1426,6 @@ fun HistoryEditModal(
             modifier = Modifier
                 .fillMaxWidth()
                 .fillMaxHeight(0.85f)
-                // .imePadding() REMOVIDO AQUI TAMBÉM
                 .padding(horizontal = 16.dp),
             verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
