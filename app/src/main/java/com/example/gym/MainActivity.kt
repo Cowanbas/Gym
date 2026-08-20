@@ -948,16 +948,33 @@ fun WeeklyBarChart(history: Map<String, WorkoutHistory>, monthlyRef: YearMonth) 
         verticalAlignment = Alignment.Bottom
     ) {
         weeksData.forEach { (label, count, isCurrent) ->
-            val heightPct = (count / 7f).coerceIn(0.05f, 1f)
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            val heightPct = (count / 7f).coerceIn(0.08f, 1f)
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Bottom,
+                modifier = Modifier.fillMaxHeight()
+            ) {
                 Text("${count}d", fontSize = 10.sp, color = AppTheme.text, fontWeight = FontWeight.Bold)
                 Spacer(Modifier.height(4.dp))
+
+                // Container fixo que trava a base da barra no mesmo nível para todas
                 Box(
                     modifier = Modifier
                         .width(22.dp)
-                        .height((80 * heightPct).dp)
-                        .background(if (isCurrent) AppTheme.text else AppTheme.muted.copy(alpha = 0.4f), RoundedCornerShape(4.dp))
-                )
+                        .height(55.dp),
+                    contentAlignment = Alignment.BottomCenter // Corrigido aqui
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .width(22.dp)
+                            .height((55 * heightPct).dp)
+                            .background(
+                                if (isCurrent) AppTheme.text else AppTheme.muted.copy(alpha = 0.4f),
+                                RoundedCornerShape(4.dp)
+                            )
+                    )
+                }
+
                 Spacer(Modifier.height(6.dp))
                 Text(
                     label,
