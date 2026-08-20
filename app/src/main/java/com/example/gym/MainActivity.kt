@@ -296,7 +296,6 @@ fun MainHomeScreen() {
     val history = remember { mutableStateMapOf<String, WorkoutHistory>() }
     var loaded by remember { mutableStateOf(false) }
 
-    val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
 
     LaunchedEffect(Unit) {
@@ -326,14 +325,12 @@ fun MainHomeScreen() {
 
     fun persistTemplates() = scope.launch { Store.saveTemplates(context, templates.toList()) }
     fun persistHistory() = scope.launch { Store.saveHistory(context, history.toMap()) }
-    fun toast(msg: String) = scope.launch { snackbarHostState.showSnackbar(msg) }
 
     val todayKey = routineKeyForDate(LocalDate.now())
     val todayStr = fmt(LocalDate.now())
 
     Scaffold(
         containerColor = AppTheme.card,
-        snackbarHost = { SnackbarHost(snackbarHostState) },
         bottomBar = {
             NavigationBar(
                 containerColor = AppTheme.card,
@@ -389,7 +386,6 @@ fun MainHomeScreen() {
                                     routines.clear()
                                     routines.putAll(t.routines)
                                     persistRoutines()
-                                    toast("Ficha $name aplicada!")
                                 }
                             },
                             onCreateTemplate = { newName, newRoutines ->
@@ -401,12 +397,9 @@ fun MainHomeScreen() {
                                 routines.clear()
                                 routines.putAll(newRoutines)
                                 persistRoutines()
-                                toast("Ficha $newName criada e aplicada!")
                             },
                             onDeleteTemplate = { nameToDelete ->
-                                if (templates.size <= 1) {
-                                    toast("Você precisa ter pelo menos uma ficha.")
-                                } else {
+                                if (templates.size > 1) {
                                     val idx = templates.indexOfFirst { it.name == nameToDelete }
                                     if (idx >= 0) {
                                         templates.removeAt(idx)
@@ -419,19 +412,16 @@ fun MainHomeScreen() {
                                             routines.putAll(next.routines)
                                             persistRoutines()
                                         }
-                                        toast("Ficha $nameToDelete excluída.")
                                     }
                                 }
                             },
                             onRoutineUpdated = { key, routine ->
                                 routines[key] = routine
                                 persistRoutines()
-                                toast("Treino salvo.")
                             },
                             onCompleteToday = { key, routine ->
                                 history[todayStr] = WorkoutHistory(todayStr, key, routine.title, routine.exercises)
                                 persistHistory()
-                                toast("Treino concluído!")
                             }
                         )
                         1 -> ConstancyTab(
@@ -440,12 +430,10 @@ fun MainHomeScreen() {
                             onSaveWorkout = { item ->
                                 history[item.date] = item
                                 persistHistory()
-                                toast("Registro salvo.")
                             },
                             onDeleteWorkout = { dateKey ->
                                 history.remove(dateKey)
                                 persistHistory()
-                                toast("Registro apagado.")
                             }
                         )
                     }
@@ -1515,21 +1503,13 @@ fun HistoryEditModal(
                 HorizontalDivider(color = AppTheme.border)
             }
 
-            if (exercises.isEmpty()) {
-                item {
-                    Box(Modifier.fillMaxWidth().padding(20.dp), contentAlignment = Alignment.Center) {
-                        Text("Nenhum exercício cadastrado.", color = AppTheme.muted, fontSize = 12.sp)
-                    }
-                }
-            } else {
-                items(exercises, key = { it.id }) { ex ->
-                    val idx = exercises.indexOf(ex)
-                    ExerciseCardItem(
-                        exercise = ex,
-                        onChanged = { updated -> if (idx in exercises.indices) exercises[idx] = updated },
-                        onDelete = { if (idx in exercises.indices) exercises.removeAt(idx) }
-                    )
-                }
+            items(exercises, key = { it.id }) { ex ->
+                val idx = exercises.indexOf(ex)
+                ExerciseCardItem(
+                    exercise = ex,
+                    onChanged = { updated -> if (idx in exercises.indices) exercises[idx] = updated },
+                    onDelete = { if (idx in exercises.indices) exercises.removeAt(idx) }
+                )
             }
 
             item {
