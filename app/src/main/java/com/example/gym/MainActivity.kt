@@ -16,6 +16,7 @@ import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyItemScope
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.rememberScrollState
@@ -42,6 +43,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.zIndex
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -594,7 +596,9 @@ fun RoutinesTab(
             val routine = routines[day.key] ?: Routine("( insert )")
             val isToday = day.key == todayKey
             val isDoneToday = isToday && history.containsKey(formattedToday)
+
             var dragOffset by remember { mutableStateOf(0f) }
+            var isDragging by remember { mutableStateOf(false) }
 
             Card(
                 colors = CardDefaults.cardColors(containerColor = AppTheme.card),
@@ -605,8 +609,14 @@ fun RoutinesTab(
                 ),
                 modifier = Modifier
                     .fillMaxWidth()
-                    .graphicsLayer { translationY = dragOffset }
-                    .clickable { editingKey = day.key }
+                    .animateItem()
+                    .zIndex(if (isDragging) 1f else 0f)
+                    .graphicsLayer {
+                        translationY = dragOffset
+                        scaleX = if (isDragging) 1.02f else 1f
+                        scaleY = if (isDragging) 1.02f else 1f
+                    }
+                    .clickable { if (!isDragging) editingKey = day.key }
             ) {
                 Row(modifier = Modifier.padding(14.dp), verticalAlignment = Alignment.CenterVertically) {
                     Box(
@@ -655,7 +665,6 @@ fun RoutinesTab(
 
                     Spacer(Modifier.width(4.dp))
 
-                    // Ícone de arrastar fluido posicionado na direita
                     Icon(
                         imageVector = Icons.Default.DragHandle,
                         contentDescription = "Drag to reorder day workout",
@@ -664,9 +673,9 @@ fun RoutinesTab(
                             .size(24.dp)
                             .pointerInput(index) {
                                 detectDragGestures(
-                                    onDragStart = { },
-                                    onDragEnd = { dragOffset = 0f },
-                                    onDragCancel = { dragOffset = 0f },
+                                    onDragStart = { isDragging = true },
+                                    onDragEnd = { isDragging = false; dragOffset = 0f },
+                                    onDragCancel = { isDragging = false; dragOffset = 0f },
                                     onDrag = { change, dragAmount ->
                                         change.consume()
                                         dragOffset += dragAmount.y
@@ -1026,8 +1035,9 @@ fun CreateTemplateModal(
     }
 }
 
+// CORRIGIDO: Adicionado LazyItemScope para permitir o uso de animateItem()
 @Composable
-fun ExerciseCardItem(
+fun LazyItemScope.ExerciseCardItem(
     exercise: Exercise,
     index: Int,
     totalItems: Int,
@@ -1037,6 +1047,7 @@ fun ExerciseCardItem(
 ) {
     var expanded by remember { mutableStateOf(false) }
     var dragOffset by remember { mutableStateOf(0f) }
+    var isDragging by remember { mutableStateOf(false) }
     val itemHeightPx = with(LocalDensity.current) { 56.dp.toPx() }
 
     Card(
@@ -1046,7 +1057,13 @@ fun ExerciseCardItem(
         modifier = Modifier
             .fillMaxWidth()
             .padding(bottom = 8.dp)
-            .graphicsLayer { translationY = dragOffset }
+            .animateItem()
+            .zIndex(if (isDragging) 1f else 0f)
+            .graphicsLayer {
+                translationY = dragOffset
+                scaleX = if (isDragging) 1.02f else 1f
+                scaleY = if (isDragging) 1.02f else 1f
+            }
     ) {
         Column(modifier = Modifier.padding(10.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -1073,10 +1090,7 @@ fun ExerciseCardItem(
                     )
                 }
                 Spacer(Modifier.width(4.dp))
-                IconButton(
-                    onClick = { expanded = !expanded },
-                    modifier = Modifier.size(36.dp)
-                ) {
+                IconButton(onClick = { expanded = !expanded }, modifier = Modifier.size(36.dp)) {
                     Icon(
                         imageVector = if (expanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
                         contentDescription = if (expanded) "Collapse" else "Expand",
@@ -1096,9 +1110,9 @@ fun ExerciseCardItem(
                         .size(24.dp)
                         .pointerInput(index) {
                             detectDragGestures(
-                                onDragStart = { },
-                                onDragEnd = { dragOffset = 0f },
-                                onDragCancel = { dragOffset = 0f },
+                                onDragStart = { isDragging = true },
+                                onDragEnd = { isDragging = false; dragOffset = 0f },
+                                onDragCancel = { isDragging = false; dragOffset = 0f },
                                 onDrag = { change, dragAmount ->
                                     change.consume()
                                     dragOffset += dragAmount.y
