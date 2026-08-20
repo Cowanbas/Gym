@@ -20,7 +20,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
@@ -267,7 +266,7 @@ fun MainHomeScreen() {
             ) {
                 NavigationBarItem(
                     selected = pagerState.currentPage == 0,
-                    onClick = { scope.launch { pagerState.scrollToPage(0) } }, // Mudança instantânea sem animação
+                    onClick = { scope.launch { pagerState.scrollToPage(0) } },
                     icon = { Icon(Icons.Default.Checklist, null, modifier = Modifier.size(26.dp)) },
                     colors = NavigationBarItemDefaults.colors(
                         selectedIconColor = AppTheme.text,
@@ -277,7 +276,7 @@ fun MainHomeScreen() {
                 )
                 NavigationBarItem(
                     selected = pagerState.currentPage == 1,
-                    onClick = { scope.launch { pagerState.scrollToPage(1) } }, // Mudança instantânea sem animação
+                    onClick = { scope.launch { pagerState.scrollToPage(1) } },
                     icon = { Icon(Icons.Default.CalendarMonth, null, modifier = Modifier.size(26.dp)) },
                     colors = NavigationBarItemDefaults.colors(
                         selectedIconColor = AppTheme.text,
@@ -457,48 +456,6 @@ fun RoutinesTab(
     }
 }
 
-// --- EDITOR DE EXERCÍCIOS OTIMIZADO ---
-@Composable
-fun ExerciseEditorList(
-    exercises: MutableList<Exercise>,
-    onAdd: () -> Unit
-) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Icon(Icons.Default.FitnessCenter, null, tint = AppTheme.text, modifier = Modifier.size(15.dp))
-            Spacer(Modifier.width(6.dp))
-            Text("Exercícios", fontWeight = FontWeight.Bold, fontSize = 13.sp, color = AppTheme.text)
-        }
-        TextButton(onClick = onAdd) {
-            Icon(Icons.Default.Add, null, tint = AppTheme.text, modifier = Modifier.size(15.dp))
-            Spacer(Modifier.width(2.dp))
-            Text("Adicionar", color = AppTheme.text, fontSize = 12.sp)
-        }
-    }
-    HorizontalDivider(color = AppTheme.border)
-    Spacer(Modifier.height(6.dp))
-
-    if (exercises.isEmpty()) {
-        Box(Modifier.fillMaxWidth().padding(20.dp), contentAlignment = Alignment.Center) {
-            Text("Nenhum exercício cadastrado.", color = AppTheme.muted, fontSize = 12.sp)
-        }
-    } else {
-        exercises.forEachIndexed { idx, ex ->
-            key(ex.id) {
-                ExerciseCardItem(
-                    exercise = ex,
-                    onChanged = { updated -> exercises[idx] = updated },
-                    onDelete = { exercises.removeAt(idx) }
-                )
-            }
-        }
-    }
-}
-
 @Composable
 fun ExerciseCardItem(
     exercise: Exercise,
@@ -596,60 +553,100 @@ fun RoutineEditModal(
     val exercises = remember { routine.exercises.toMutableStateList() }
 
     ModalBottomSheet(onDismissRequest = onDismiss, containerColor = AppTheme.card) {
-        Column(
+        LazyColumn(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 16.dp)
-                .verticalScroll(rememberScrollState())
+                .fillMaxHeight(0.85f)
+                // .imePadding() REMOVIDO AQUI PARA EVITAR O DUPLO DESLOCAMENTO DO TECLADO
+                .padding(horizontal = 16.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                OutlinedTextField(
-                    value = title,
-                    onValueChange = { title = it },
-                    modifier = Modifier.weight(1f),
-                    singleLine = true,
-                    label = { Text("Nome do treino", color = AppTheme.muted) },
-                    textStyle = TextStyle(fontSize = 16.sp, fontWeight = FontWeight.Bold, color = AppTheme.text),
-                    keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = AppTheme.text,
-                        unfocusedBorderColor = AppTheme.border,
-                        cursorColor = AppTheme.text
+            item {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    OutlinedTextField(
+                        value = title,
+                        onValueChange = { title = it },
+                        modifier = Modifier.weight(1f),
+                        singleLine = true,
+                        label = { Text("Nome do treino", color = AppTheme.muted) },
+                        textStyle = TextStyle(fontSize = 16.sp, fontWeight = FontWeight.Bold, color = AppTheme.text),
+                        keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = AppTheme.text,
+                            unfocusedBorderColor = AppTheme.border,
+                            cursorColor = AppTheme.text
+                        )
                     )
-                )
-                IconButton(onClick = onDismiss) {
-                    Icon(Icons.Default.Close, "Fechar", tint = AppTheme.muted)
-                }
-            }
-            Spacer(Modifier.height(10.dp))
-
-            ExerciseEditorList(exercises) { exercises.add(Exercise()) }
-
-            Spacer(Modifier.height(16.dp))
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                Button(
-                    onClick = { onSave(Routine(title.ifBlank { "( inserir )" }, exercises.toList())) },
-                    colors = ButtonDefaults.buttonColors(containerColor = AppTheme.hover),
-                    border = BorderStroke(1.dp, AppTheme.border),
-                    modifier = Modifier.weight(1f)
-                ) {
-                    Icon(Icons.Default.Save, null, tint = AppTheme.text, modifier = Modifier.size(15.dp))
-                    Spacer(Modifier.width(6.dp))
-                    Text("Salvar", color = AppTheme.text)
-                }
-                if (isToday) {
-                    Button(
-                        onClick = { onComplete(Routine(title.ifBlank { "( inserir )" }, exercises.toList())) },
-                        colors = ButtonDefaults.buttonColors(containerColor = AppTheme.text),
-                        modifier = Modifier.weight(1f)
-                    ) {
-                        Icon(Icons.Default.Check, null, tint = Color.Black, modifier = Modifier.size(15.dp))
-                        Spacer(Modifier.width(6.dp))
-                        Text("Concluir", color = Color.Black, fontWeight = FontWeight.Bold)
+                    IconButton(onClick = onDismiss) {
+                        Icon(Icons.Default.Close, "Fechar", tint = AppTheme.muted)
                     }
                 }
             }
-            Spacer(Modifier.height(32.dp))
+
+            item {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(Icons.Default.FitnessCenter, null, tint = AppTheme.text, modifier = Modifier.size(15.dp))
+                        Spacer(Modifier.width(6.dp))
+                        Text("Exercícios", fontWeight = FontWeight.Bold, fontSize = 13.sp, color = AppTheme.text)
+                    }
+                    TextButton(onClick = { exercises.add(Exercise()) }) {
+                        Icon(Icons.Default.Add, null, tint = AppTheme.text, modifier = Modifier.size(15.dp))
+                        Spacer(Modifier.width(2.dp))
+                        Text("Adicionar", color = AppTheme.text, fontSize = 12.sp)
+                    }
+                }
+                HorizontalDivider(color = AppTheme.border)
+            }
+
+            if (exercises.isEmpty()) {
+                item {
+                    Box(Modifier.fillMaxWidth().padding(20.dp), contentAlignment = Alignment.Center) {
+                        Text("Nenhum exercício cadastrado.", color = AppTheme.muted, fontSize = 12.sp)
+                    }
+                }
+            } else {
+                items(exercises, key = { it.id }) { ex ->
+                    val idx = exercises.indexOf(ex)
+                    ExerciseCardItem(
+                        exercise = ex,
+                        onChanged = { updated -> if (idx in exercises.indices) exercises[idx] = updated },
+                        onDelete = { if (idx in exercises.indices) exercises.removeAt(idx) }
+                    )
+                }
+            }
+
+            item {
+                Spacer(Modifier.height(6.dp))
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Button(
+                        onClick = { onSave(Routine(title.ifBlank { "( inserir )" }, exercises.toList())) },
+                        colors = ButtonDefaults.buttonColors(containerColor = AppTheme.hover),
+                        border = BorderStroke(1.dp, AppTheme.border),
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Icon(Icons.Default.Save, null, tint = AppTheme.text, modifier = Modifier.size(15.dp))
+                        Spacer(Modifier.width(6.dp))
+                        Text("Salvar", color = AppTheme.text)
+                    }
+                    if (isToday) {
+                        Button(
+                            onClick = { onComplete(Routine(title.ifBlank { "( inserir )" }, exercises.toList())) },
+                            colors = ButtonDefaults.buttonColors(containerColor = AppTheme.text),
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            Icon(Icons.Default.Check, null, tint = Color.Black, modifier = Modifier.size(15.dp))
+                            Spacer(Modifier.width(6.dp))
+                            Text("Concluir", color = Color.Black, fontWeight = FontWeight.Bold)
+                        }
+                    }
+                }
+                Spacer(Modifier.height(32.dp))
+            }
         }
     }
 }
@@ -1117,50 +1114,90 @@ fun HistoryEditModal(
     val exercises = remember { item.exercises.toMutableStateList() }
 
     ModalBottomSheet(onDismissRequest = onDismiss, containerColor = AppTheme.card) {
-        Column(
+        LazyColumn(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 16.dp)
-                .verticalScroll(rememberScrollState())
+                .fillMaxHeight(0.85f)
+                // .imePadding() REMOVIDO AQUI TAMBÉM
+                .padding(horizontal = 16.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
-            Text("Treino de ${item.date}", fontSize = 11.sp, color = AppTheme.muted)
-            Spacer(Modifier.height(4.dp))
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                OutlinedTextField(
-                    value = title,
-                    onValueChange = { title = it },
-                    modifier = Modifier.weight(1f),
-                    singleLine = true,
-                    label = { Text("Nome do treino", color = AppTheme.muted) },
-                    textStyle = TextStyle(fontSize = 16.sp, fontWeight = FontWeight.Bold, color = AppTheme.text),
-                    keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = AppTheme.text,
-                        unfocusedBorderColor = AppTheme.border,
-                        cursorColor = AppTheme.text
+            item {
+                Text("Treino de ${item.date}", fontSize = 11.sp, color = AppTheme.muted)
+                Spacer(Modifier.height(4.dp))
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    OutlinedTextField(
+                        value = title,
+                        onValueChange = { title = it },
+                        modifier = Modifier.weight(1f),
+                        singleLine = true,
+                        label = { Text("Nome do treino", color = AppTheme.muted) },
+                        textStyle = TextStyle(fontSize = 16.sp, fontWeight = FontWeight.Bold, color = AppTheme.text),
+                        keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = AppTheme.text,
+                            unfocusedBorderColor = AppTheme.border,
+                            cursorColor = AppTheme.text
+                        )
                     )
-                )
-                IconButton(onClick = onDismiss) {
-                    Icon(Icons.Default.Close, "Fechar", tint = AppTheme.muted)
+                    IconButton(onClick = onDismiss) {
+                        Icon(Icons.Default.Close, "Fechar", tint = AppTheme.muted)
+                    }
                 }
             }
-            Spacer(Modifier.height(10.dp))
 
-            ExerciseEditorList(exercises) { exercises.add(Exercise()) }
-
-            Spacer(Modifier.height(16.dp))
-            Button(
-                onClick = {
-                    onSave(item.copy(routineTitle = title.ifBlank { "( inserir )" }, exercises = exercises.toList()))
-                },
-                colors = ButtonDefaults.buttonColors(containerColor = AppTheme.text),
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Icon(Icons.Default.Save, null, tint = Color.Black, modifier = Modifier.size(15.dp))
-                Spacer(Modifier.width(6.dp))
-                Text("Salvar registro", color = Color.Black, fontWeight = FontWeight.Bold)
+            item {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(Icons.Default.FitnessCenter, null, tint = AppTheme.text, modifier = Modifier.size(15.dp))
+                        Spacer(Modifier.width(6.dp))
+                        Text("Exercícios", fontWeight = FontWeight.Bold, fontSize = 13.sp, color = AppTheme.text)
+                    }
+                    TextButton(onClick = { exercises.add(Exercise()) }) {
+                        Icon(Icons.Default.Add, null, tint = AppTheme.text, modifier = Modifier.size(15.dp))
+                        Spacer(Modifier.width(2.dp))
+                        Text("Adicionar", color = AppTheme.text, fontSize = 12.sp)
+                    }
+                }
+                HorizontalDivider(color = AppTheme.border)
             }
-            Spacer(Modifier.height(32.dp))
+
+            if (exercises.isEmpty()) {
+                item {
+                    Box(Modifier.fillMaxWidth().padding(20.dp), contentAlignment = Alignment.Center) {
+                        Text("Nenhum exercício cadastrado.", color = AppTheme.muted, fontSize = 12.sp)
+                    }
+                }
+            } else {
+                items(exercises, key = { it.id }) { ex ->
+                    val idx = exercises.indexOf(ex)
+                    ExerciseCardItem(
+                        exercise = ex,
+                        onChanged = { updated -> if (idx in exercises.indices) exercises[idx] = updated },
+                        onDelete = { if (idx in exercises.indices) exercises.removeAt(idx) }
+                    )
+                }
+            }
+
+            item {
+                Spacer(Modifier.height(6.dp))
+                Button(
+                    onClick = {
+                        onSave(item.copy(routineTitle = title.ifBlank { "( inserir )" }, exercises = exercises.toList()))
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = AppTheme.text),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Icon(Icons.Default.Save, null, tint = Color.Black, modifier = Modifier.size(15.dp))
+                    Spacer(Modifier.width(6.dp))
+                    Text("Salvar registro", color = Color.Black, fontWeight = FontWeight.Bold)
+                }
+                Spacer(Modifier.height(32.dp))
+            }
         }
     }
 }
