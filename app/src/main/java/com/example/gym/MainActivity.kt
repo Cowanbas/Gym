@@ -63,14 +63,14 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-// --- TEMA MONOCROMÁTICO (FOSSIFY STYLE) ---
+// --- TEMA PERSONALIZADO (SEM A COR DO ÍCONE) ---[cite: 1]
 object AppTheme {
-    val bg = Color(0xFF101010)
-    val card = Color(0xFF101010)
-    val border = Color(0xFF242424)
-    val hover = Color(0xFF1A1A1A)
+    val bg = Color(0xFF121212)
+    val card = Color(0xFF121212)
+    val border = Color(0xFF2B2B2B)
+    val hover = Color(0xFF1E1E1E)
     val text = Color(0xFFFFFFFF)
-    val muted = Color(0xFF888888)
+    val muted = Color(0xFF9E9E9E)
 }
 
 @Composable
@@ -87,7 +87,7 @@ fun GymTheme(content: @Composable () -> Unit) {
     )
 }
 
-// --- MODELOS ---
+// --- MODELOS ---[cite: 1]
 data class Exercise(
     val id: String = System.nanoTime().toString(),
     val name: String = "",
@@ -181,7 +181,7 @@ data class WorkoutHistory(
     }
 }
 
-// --- PERSISTÊNCIA OTIMIZADA ---
+// --- PERSISTÊNCIA OTIMIZADA ---[cite: 1]
 object Store {
     private const val PREFS = "gym_store"
     private const val KEY_ROUTINES = "routines"
@@ -283,7 +283,7 @@ val WEEK_DAYS = listOf(
 
 fun routineKeyForDate(date: LocalDate): String = DAY_KEYS[date.dayOfWeek.value - 1]
 
-// --- TELA PRINCIPAL ---
+// --- TELA PRINCIPAL ---[cite: 1]
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun MainHomeScreen() {
@@ -415,6 +415,20 @@ fun MainHomeScreen() {
                                     }
                                 }
                             },
+                            onUpdateTemplate = { oldName, updatedTemplate ->
+                                val idx = templates.indexOfFirst { it.name == oldName }
+                                if (idx >= 0) {
+                                    templates[idx] = updatedTemplate
+                                    persistTemplates()
+                                    if (activeTemplateName == oldName) {
+                                        activeTemplateName = updatedTemplate.name
+                                        scope.launch { Store.saveActiveTemplateName(context, updatedTemplate.name) }
+                                        routines.clear()
+                                        routines.putAll(updatedTemplate.routines)
+                                        persistRoutines()
+                                    }
+                                }
+                            },
                             onRoutineUpdated = { key, routine ->
                                 routines[key] = routine
                                 persistRoutines()
@@ -427,6 +441,7 @@ fun MainHomeScreen() {
                         1 -> ConstancyTab(
                             history = history,
                             routines = routines,
+                            templates = templates,
                             onSaveWorkout = { item ->
                                 history[item.date] = item
                                 persistHistory()
@@ -457,12 +472,14 @@ fun RoutinesTab(
     onSelectTemplate: (String) -> Unit,
     onCreateTemplate: (String, Map<String, Routine>) -> Unit,
     onDeleteTemplate: (String) -> Unit,
+    onUpdateTemplate: (String, WorkoutTemplate) -> Unit,
     onRoutineUpdated: (String, Routine) -> Unit,
     onCompleteToday: (String, Routine) -> Unit
 ) {
     var editingKey by remember { mutableStateOf<String?>(null) }
     var menuExpanded by remember { mutableStateOf(false) }
     var showCreateModal by remember { mutableStateOf(false) }
+    var editingTemplate by remember { mutableStateOf<WorkoutTemplate?>(null) }
     val todayShort = WEEK_DAYS.first { it.key == todayKey }.short
 
     LazyColumn(
@@ -521,16 +538,14 @@ fun RoutinesTab(
                                                     fontWeight = if (template.name == activeTemplateName) FontWeight.Bold else FontWeight.Normal
                                                 )
                                             }
-                                            if (templates.size > 1) {
-                                                IconButton(
-                                                    onClick = {
-                                                        menuExpanded = false
-                                                        onDeleteTemplate(template.name)
-                                                    },
-                                                    modifier = Modifier.size(30.dp)
-                                                ) {
-                                                    Icon(Icons.Default.Delete, contentDescription = "Excluir ficha", tint = AppTheme.muted, modifier = Modifier.size(16.dp))
-                                                }
+                                            IconButton(
+                                                onClick = {
+                                                    menuExpanded = false
+                                                    editingTemplate = template
+                                                },
+                                                modifier = Modifier.size(30.dp)
+                                            ) {
+                                                Icon(Icons.Default.Settings, contentDescription = "Configurar ficha", tint = AppTheme.muted, modifier = Modifier.size(16.dp))
                                             }
                                         }
                                     },
@@ -645,10 +660,192 @@ fun RoutinesTab(
 
     if (showCreateModal) {
         CreateTemplateModal(
+            templates = templates,
             onDismiss = { showCreateModal = false },
             onSave = { name, newRoutines ->
                 onCreateTemplate(name, newRoutines)
                 showCreateModal = false
+            }
+        )
+    }
+
+    editingTemplate?.let { template ->
+        EditTemplateModal(
+            template = template,
+            templates = templates,
+            canDelete = templates.size > 1,
+            onDismiss = { editingTemplate = null },
+            onSave = { updatedTemplate ->
+                onUpdateTemplate(template.name, updatedTemplate)
+                editingTemplate = null
+            },
+            onDelete = {
+                onDeleteTemplate(template.name)
+                editingTemplate = null
+            }
+        )
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun EditTemplateModal(
+    template: WorkoutTemplate,
+    templates: List<WorkoutTemplate>,
+    canDelete: Boolean,
+    onDismiss: () -> Unit,
+    onSave: (WorkoutTemplate) -> Unit,
+    onDelete: () -> Unit
+) {
+    var templateName by remember { mutableStateOf(template.name) }
+    var errorMessage by remember { mutableStateOf<String?>(null) }
+    val routinesMap = remember {
+        mutableStateMapOf<String, Routine>().apply {
+            putAll(template.routines)
+        }
+    }
+    var editingDayKey by remember { mutableStateOf<String?>(null) }
+    var showDeleteConfirm by remember { mutableStateOf(false) }
+
+    ModalBottomSheet(onDismissRequest = onDismiss, containerColor = AppTheme.card) {
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxWidth()
+                .fillMaxHeight(0.85f)
+                .padding(horizontal = 16.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            item {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text("Editar Ficha", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = AppTheme.text)
+                    IconButton(onClick = onDismiss) {
+                        Icon(Icons.Default.Close, "Fechar", tint = AppTheme.muted)
+                    }
+                }
+                Spacer(Modifier.height(6.dp))
+                OutlinedTextField(
+                    value = templateName,
+                    onValueChange = {
+                        templateName = it
+                        errorMessage = null
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true,
+                    label = { Text("Nome da Ficha", color = AppTheme.muted) },
+                    textStyle = TextStyle(fontSize = 14.sp, color = AppTheme.text),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = AppTheme.text,
+                        unfocusedBorderColor = AppTheme.border,
+                        cursorColor = AppTheme.text
+                    )
+                )
+                if (errorMessage != null) {
+                    Spacer(Modifier.height(4.dp))
+                    Text(errorMessage!!, fontSize = 11.sp, color = Color(0xFFFF5252))
+                }
+            }
+
+            item {
+                Spacer(Modifier.height(4.dp))
+                Text("Treinos da ficha (clique para editar ou excluir exercícios):", fontSize = 12.sp, color = AppTheme.muted, fontWeight = FontWeight.Bold)
+            }
+
+            items(WEEK_DAYS, key = { it.key }) { day ->
+                val routine = routinesMap[day.key] ?: Routine("( inserir )")
+                Card(
+                    colors = CardDefaults.cardColors(containerColor = AppTheme.hover),
+                    shape = RoundedCornerShape(8.dp),
+                    border = BorderStroke(1.dp, AppTheme.border),
+                    modifier = Modifier.fillMaxWidth().clickable { editingDayKey = day.key }
+                ) {
+                    Row(
+                        modifier = Modifier.padding(12.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(day.name, fontSize = 11.sp, color = AppTheme.muted, fontWeight = FontWeight.Bold)
+                            Text(routine.title, fontSize = 13.sp, color = AppTheme.text, fontWeight = FontWeight.Bold)
+                            Text("${routine.exercises.size} exercícios", fontSize = 10.sp, color = AppTheme.muted)
+                        }
+                        Icon(Icons.Default.Edit, null, tint = AppTheme.muted, modifier = Modifier.size(16.dp))
+                    }
+                }
+            }
+
+            item {
+                Spacer(Modifier.height(10.dp))
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    if (canDelete) {
+                        Button(
+                            onClick = { showDeleteConfirm = true },
+                            colors = ButtonDefaults.buttonColors(containerColor = AppTheme.hover),
+                            border = BorderStroke(1.dp, AppTheme.border),
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            Icon(Icons.Default.Delete, null, tint = AppTheme.text, modifier = Modifier.size(15.dp))
+                            Spacer(Modifier.width(6.dp))
+                            Text("Excluir Ficha", color = AppTheme.text)
+                        }
+                    }
+                    Button(
+                        onClick = {
+                            val name = templateName.trim().ifBlank { template.name }
+                            val nameExists = templates.any { it.name.equals(name, ignoreCase = true) && it.name != template.name }
+                            if (nameExists) {
+                                errorMessage = "Já existe outra ficha com este nome."
+                            } else {
+                                onSave(WorkoutTemplate(name, routinesMap.toMap()))
+                            }
+                        },
+                        colors = ButtonDefaults.buttonColors(containerColor = AppTheme.text),
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Icon(Icons.Default.Check, null, tint = Color.Black, modifier = Modifier.size(15.dp))
+                        Spacer(Modifier.width(6.dp))
+                        Text("Salvar Ficha", color = Color.Black, fontWeight = FontWeight.Bold)
+                    }
+                }
+                Spacer(Modifier.height(32.dp))
+            }
+        }
+    }
+
+    editingDayKey?.let { dayKey ->
+        val routine = routinesMap[dayKey] ?: Routine("( inserir )")
+        RoutineEditModal(
+            routine = routine,
+            isToday = false,
+            onDismiss = { editingDayKey = null },
+            onSave = { updated ->
+                routinesMap[dayKey] = updated
+                editingDayKey = null
+            },
+            onComplete = { updated ->
+                routinesMap[dayKey] = updated
+                editingDayKey = null
+            }
+        )
+    }
+
+    if (showDeleteConfirm) {
+        AlertDialog(
+            onDismissRequest = { showDeleteConfirm = false },
+            containerColor = AppTheme.card,
+            title = { Text("Excluir ficha?", color = AppTheme.text) },
+            text = { Text("A ficha '${template.name}' será removida permanentemente.", color = AppTheme.muted) },
+            confirmButton = {
+                TextButton(onClick = {
+                    showDeleteConfirm = false
+                    onDelete()
+                }) { Text("Excluir", color = AppTheme.text) }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDeleteConfirm = false }) { Text("Cancelar", color = AppTheme.muted) }
             }
         )
     }
@@ -657,10 +854,12 @@ fun RoutinesTab(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CreateTemplateModal(
+    templates: List<WorkoutTemplate>,
     onDismiss: () -> Unit,
     onSave: (String, Map<String, Routine>) -> Unit
 ) {
     var templateName by remember { mutableStateOf("") }
+    var errorMessage by remember { mutableStateOf<String?>(null) }
     val routinesMap = remember {
         mutableStateMapOf<String, Routine>().apply {
             putAll(Store.defaultRoutines())
@@ -690,7 +889,10 @@ fun CreateTemplateModal(
                 Spacer(Modifier.height(6.dp))
                 OutlinedTextField(
                     value = templateName,
-                    onValueChange = { templateName = it },
+                    onValueChange = {
+                        templateName = it
+                        errorMessage = null
+                    },
                     modifier = Modifier.fillMaxWidth(),
                     singleLine = true,
                     label = { Text("Nome da Ficha (ex: Ficha C)", color = AppTheme.muted) },
@@ -701,6 +903,10 @@ fun CreateTemplateModal(
                         cursorColor = AppTheme.text
                     )
                 )
+                if (errorMessage != null) {
+                    Spacer(Modifier.height(4.dp))
+                    Text(errorMessage!!, fontSize = 11.sp, color = Color(0xFFFF5252))
+                }
             }
 
             item {
@@ -735,8 +941,13 @@ fun CreateTemplateModal(
                 Spacer(Modifier.height(10.dp))
                 Button(
                     onClick = {
-                        val name = templateName.ifBlank { "Nova Ficha" }
-                        onSave(name, routinesMap.toMap())
+                        val name = templateName.trim().ifBlank { "Nova Ficha" }
+                        val nameExists = templates.any { it.name.equals(name, ignoreCase = true) }
+                        if (nameExists) {
+                            errorMessage = "Já existe uma ficha com este nome."
+                        } else {
+                            onSave(name, routinesMap.toMap())
+                        }
                     },
                     colors = ButtonDefaults.buttonColors(containerColor = AppTheme.text),
                     modifier = Modifier.fillMaxWidth()
@@ -774,6 +985,8 @@ fun ExerciseCardItem(
     onChanged: (Exercise) -> Unit,
     onDelete: () -> Unit
 ) {
+    var expanded by remember { mutableStateOf(false) }
+
     Card(
         colors = CardDefaults.cardColors(containerColor = AppTheme.hover),
         shape = RoundedCornerShape(8.dp),
@@ -782,34 +995,56 @@ fun ExerciseCardItem(
     ) {
         Column(modifier = Modifier.padding(10.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                OutlinedTextField(
-                    value = exercise.name,
-                    onValueChange = { onChanged(exercise.copy(name = it)) },
-                    modifier = Modifier.weight(1f),
-                    singleLine = true,
-                    placeholder = { Text("Nome do Exercício", color = AppTheme.muted, fontSize = 12.sp) },
-                    textStyle = TextStyle(fontSize = 12.sp, fontWeight = FontWeight.Bold, color = AppTheme.text),
-                    keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = AppTheme.text,
-                        unfocusedBorderColor = AppTheme.border,
-                        cursorColor = AppTheme.text
+                if (expanded) {
+                    OutlinedTextField(
+                        value = exercise.name,
+                        onValueChange = { onChanged(exercise.copy(name = it)) },
+                        modifier = Modifier.weight(1f),
+                        singleLine = true,
+                        placeholder = { Text("Nome do Exercício", color = AppTheme.muted, fontSize = 12.sp) },
+                        textStyle = TextStyle(fontSize = 12.sp, fontWeight = FontWeight.Bold, color = AppTheme.text),
+                        keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = AppTheme.text,
+                            unfocusedBorderColor = AppTheme.border,
+                            cursorColor = AppTheme.text
+                        )
                     )
-                )
+                } else {
+                    Text(
+                        text = exercise.name.ifBlank { "Exercício sem nome" },
+                        modifier = Modifier.weight(1f).padding(vertical = 12.dp),
+                        style = TextStyle(fontSize = 12.sp, fontWeight = FontWeight.Bold, color = if (exercise.name.isBlank()) AppTheme.muted else AppTheme.text)
+                    )
+                }
+                Spacer(Modifier.width(4.dp))
+                IconButton(
+                    onClick = { expanded = !expanded },
+                    modifier = Modifier.size(36.dp)
+                ) {
+                    Icon(
+                        imageVector = if (expanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
+                        contentDescription = if (expanded) "Recolher" else "Expandir",
+                        tint = AppTheme.muted,
+                        modifier = Modifier.size(18.dp)
+                    )
+                }
                 IconButton(onClick = onDelete, modifier = Modifier.size(36.dp)) {
                     Icon(Icons.Default.Delete, "Apagar", tint = AppTheme.muted, modifier = Modifier.size(18.dp))
                 }
             }
-            Spacer(Modifier.height(6.dp))
-            Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                NumberInputField("Séries", exercise.sets.toString(), Modifier.weight(1f)) {
-                    onChanged(exercise.copy(sets = it.toIntOrNull() ?: 0))
-                }
-                NumberInputField("Reps", exercise.reps.toString(), Modifier.weight(1f)) {
-                    onChanged(exercise.copy(reps = it.toIntOrNull() ?: 0))
-                }
-                NumberInputField("Carga (kg)", trimNumber(exercise.weight), Modifier.weight(1f), decimal = true) {
-                    onChanged(exercise.copy(weight = it.replace(',', '.').toDoubleOrNull() ?: 0.0))
+            if (expanded) {
+                Spacer(Modifier.height(6.dp))
+                Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    NumberInputField("Séries", exercise.sets.toString(), Modifier.weight(1f)) {
+                        onChanged(exercise.copy(sets = it.toIntOrNull() ?: 0))
+                    }
+                    NumberInputField("Reps", exercise.reps.toString(), Modifier.weight(1f)) {
+                        onChanged(exercise.copy(reps = it.toIntOrNull() ?: 0))
+                    }
+                    NumberInputField("Carga (kg)", trimNumber(exercise.weight), Modifier.weight(1f), decimal = true) {
+                        onChanged(exercise.copy(weight = it.replace(',', '.').toDoubleOrNull() ?: 0.0))
+                    }
                 }
             }
         }
@@ -980,6 +1215,7 @@ fun RoutineEditModal(
 fun ConstancyTab(
     history: SnapshotStateMap<String, WorkoutHistory>,
     routines: Map<String, Routine>,
+    templates: List<WorkoutTemplate>,
     onSaveWorkout: (WorkoutHistory) -> Unit,
     onDeleteWorkout: (String) -> Unit
 ) {
@@ -988,6 +1224,7 @@ fun ConstancyTab(
     var selectedDateKey by remember { mutableStateOf<String?>(null) }
     var editing by remember { mutableStateOf<WorkoutHistory?>(null) }
     var confirmDelete by remember { mutableStateOf<String?>(null) }
+    var showRoutinePickerForDate by remember { mutableStateOf<String?>(null) }
 
     val streak by remember(history) {
         derivedStateOf {
@@ -1094,15 +1331,7 @@ fun ConstancyTab(
                     onClose = { selectedDateKey = null },
                     onEdit = { editing = it },
                     onAdd = {
-                        val date = LocalDate.parse(dateKey, DATE_FMT)
-                        val key = routineKeyForDate(date)
-                        val base = routines[key]
-                        editing = WorkoutHistory(
-                            date = dateKey,
-                            routineKey = key,
-                            routineTitle = base?.title ?: "( inserir )",
-                            exercises = base?.exercises?.map { it.copy(id = System.nanoTime().toString() + it.id) } ?: emptyList()
-                        )
+                        showRoutinePickerForDate = dateKey
                     },
                     onDelete = { confirmDelete = dateKey }
                 )
@@ -1110,6 +1339,45 @@ fun ConstancyTab(
         }
 
         item { Spacer(Modifier.height(16.dp)) }
+    }
+
+    showRoutinePickerForDate?.let { dateKey ->
+        RoutinePickerBottomSheet(
+            templates = templates,
+            currentRoutines = routines,
+            dateKey = dateKey,
+            onDismiss = { showRoutinePickerForDate = null },
+            onSelectRoutine = { routine ->
+                showRoutinePickerForDate = null
+                editing = WorkoutHistory(
+                    date = dateKey,
+                    routineKey = "",
+                    routineTitle = routine.title,
+                    exercises = routine.exercises.map { it.copy(id = System.nanoTime().toString() + it.id) }
+                )
+            },
+            onSelectDefault = {
+                showRoutinePickerForDate = null
+                val date = LocalDate.parse(dateKey, DATE_FMT)
+                val key = routineKeyForDate(date)
+                val base = routines[key]
+                editing = WorkoutHistory(
+                    date = dateKey,
+                    routineKey = key,
+                    routineTitle = base?.title ?: "( inserir )",
+                    exercises = base?.exercises?.map { it.copy(id = System.nanoTime().toString() + it.id) } ?: emptyList()
+                )
+            },
+            onSelectEmpty = {
+                showRoutinePickerForDate = null
+                editing = WorkoutHistory(
+                    date = dateKey,
+                    routineKey = "",
+                    routineTitle = "Treino",
+                    exercises = emptyList()
+                )
+            }
+        )
     }
 
     editing?.let { item ->
@@ -1140,6 +1408,123 @@ fun ConstancyTab(
                 TextButton(onClick = { confirmDelete = null }) { Text("Cancelar", color = AppTheme.muted) }
             }
         )
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun RoutinePickerBottomSheet(
+    templates: List<WorkoutTemplate>,
+    currentRoutines: Map<String, Routine>,
+    dateKey: String,
+    onDismiss: () -> Unit,
+    onSelectRoutine: (Routine) -> Unit,
+    onSelectDefault: () -> Unit,
+    onSelectEmpty: () -> Unit
+) {
+    val date = LocalDate.parse(dateKey, DATE_FMT)
+    val defaultKey = routineKeyForDate(date)
+    val defaultRoutine = currentRoutines[defaultKey]
+
+    ModalBottomSheet(onDismissRequest = onDismiss, containerColor = AppTheme.card) {
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxWidth()
+                .fillMaxHeight(0.80f)
+                .padding(horizontal = 16.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            item {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text("Adicionar Treino em $dateKey", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = AppTheme.text)
+                    IconButton(onClick = onDismiss) {
+                        Icon(Icons.Default.Close, "Fechar", tint = AppTheme.muted)
+                    }
+                }
+                Spacer(Modifier.height(4.dp))
+                Text("Escolha de qual ficha ou opção deseja carregar o treino:", fontSize = 12.sp, color = AppTheme.muted)
+                Spacer(Modifier.height(8.dp))
+
+                Card(
+                    colors = CardDefaults.cardColors(containerColor = AppTheme.hover),
+                    shape = RoundedCornerShape(8.dp),
+                    border = BorderStroke(1.dp, AppTheme.border),
+                    modifier = Modifier.fillMaxWidth().clickable { onSelectDefault() }
+                ) {
+                    Row(modifier = Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
+                        Icon(Icons.Default.Today, null, tint = AppTheme.text, modifier = Modifier.size(20.dp))
+                        Spacer(Modifier.width(12.dp))
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text("Treino Padrão do Dia", fontWeight = FontWeight.Bold, fontSize = 13.sp, color = AppTheme.text)
+                            Text(defaultRoutine?.title ?: "(vazio)", fontSize = 11.sp, color = AppTheme.muted)
+                        }
+                        Icon(Icons.Default.ChevronRight, null, tint = AppTheme.muted, modifier = Modifier.size(16.dp))
+                    }
+                }
+
+                Spacer(Modifier.height(6.dp))
+
+                Card(
+                    colors = CardDefaults.cardColors(containerColor = AppTheme.hover),
+                    shape = RoundedCornerShape(8.dp),
+                    border = BorderStroke(1.dp, AppTheme.border),
+                    modifier = Modifier.fillMaxWidth().clickable { onSelectEmpty() }
+                ) {
+                    Row(modifier = Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
+                        Icon(Icons.Default.Add, null, tint = AppTheme.text, modifier = Modifier.size(20.dp))
+                        Spacer(Modifier.width(12.dp))
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text("Treino em Branco", fontWeight = FontWeight.Bold, fontSize = 13.sp, color = AppTheme.text)
+                            Text("Criar do zero manualmente", fontSize = 11.sp, color = AppTheme.muted)
+                        }
+                        Icon(Icons.Default.ChevronRight, null, tint = AppTheme.muted, modifier = Modifier.size(16.dp))
+                    }
+                }
+
+                Spacer(Modifier.height(12.dp))
+                HorizontalDivider(color = AppTheme.border)
+                Spacer(Modifier.height(4.dp))
+                Text("OU ESCOLHER DE OUTRA FICHA:", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = AppTheme.muted)
+            }
+
+            items(templates) { template ->
+                Spacer(Modifier.height(4.dp))
+                Text(template.name, fontSize = 12.sp, fontWeight = FontWeight.Bold, color = AppTheme.text)
+                Spacer(Modifier.height(4.dp))
+                DAY_KEYS.forEach { dayKey ->
+                    val routine = template.routines[dayKey] ?: return@forEach
+                    val dayName = WEEK_DAYS.find { it.key == dayKey }?.name ?: dayKey
+                    Card(
+                        colors = CardDefaults.cardColors(containerColor = AppTheme.hover),
+                        shape = RoundedCornerShape(8.dp),
+                        border = BorderStroke(1.dp, AppTheme.border),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(bottom = 6.dp)
+                            .clickable { onSelectRoutine(routine) }
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(12.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(dayName, fontSize = 11.sp, color = AppTheme.muted)
+                                Text(routine.title, fontSize = 13.sp, fontWeight = FontWeight.Bold, color = AppTheme.text)
+                                Text("${routine.exercises.size} exercícios", fontSize = 10.sp, color = AppTheme.muted)
+                            }
+                            Icon(Icons.Default.ChevronRight, null, tint = AppTheme.muted, modifier = Modifier.size(16.dp))
+                        }
+                    }
+                }
+            }
+
+            item { Spacer(Modifier.height(32.dp)) }
+        }
     }
 }
 
