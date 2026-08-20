@@ -1116,8 +1116,9 @@ fun ConstancyTab(
         HistoryEditModal(
             item = item,
             onDismiss = { editing = null },
-            onSave = {
-                onSaveWorkout(it)
+            onSave = { savedItem ->
+                onSaveWorkout(savedItem)
+                weeklyMonth = YearMonth.from(LocalDate.parse(savedItem.date, DATE_FMT))
                 editing = null
             }
         )
@@ -1220,30 +1221,32 @@ fun HeatmapGrid(history: Map<String, WorkoutHistory>) {
 
 @Composable
 fun WeeklyBarChart(history: Map<String, WorkoutHistory>, monthlyRef: YearMonth) {
-    val weeksData = remember(history, monthlyRef) {
-        val firstDayOfMonth = monthlyRef.atDay(1)
-        val lastDayOfMonth = monthlyRef.atEndOfMonth()
-        var currentMonday = firstDayOfMonth.with(java.time.temporal.TemporalAdjusters.previousOrSame(java.time.DayOfWeek.MONDAY))
+    val weeksData by remember(monthlyRef) {
+        derivedStateOf {
+            val firstDayOfMonth = monthlyRef.atDay(1)
+            val lastDayOfMonth = monthlyRef.atEndOfMonth()
+            var currentMonday = firstDayOfMonth.with(java.time.temporal.TemporalAdjusters.previousOrSame(java.time.DayOfWeek.MONDAY))
 
-        val list = mutableListOf<Triple<String, Int, Boolean>>()
-        var weekNum = 1
-        val today = LocalDate.now()
+            val list = mutableListOf<Triple<String, Int, Boolean>>()
+            var weekNum = 1
+            val today = LocalDate.now()
 
-        while (currentMonday <= lastDayOfMonth) {
-            val weekSunday = currentMonday.plusDays(6)
-            val count = (0..6).count { dayOffset ->
-                val d = currentMonday.plusDays(dayOffset.toLong())
-                history.containsKey(fmt(d))
+            while (currentMonday <= lastDayOfMonth) {
+                val weekSunday = currentMonday.plusDays(6)
+                val count = (0..6).count { dayOffset ->
+                    val d = currentMonday.plusDays(dayOffset.toLong())
+                    history.containsKey(fmt(d))
+                }
+
+                val isCurrentWeek = !today.isBefore(currentMonday) && !today.isAfter(weekSunday)
+                val label = if (isCurrentWeek) "Atual" else "Sem $weekNum"
+
+                list.add(Triple(label, count, isCurrentWeek))
+                currentMonday = currentMonday.plusWeeks(1)
+                weekNum++
             }
-
-            val isCurrentWeek = !today.isBefore(currentMonday) && !today.isAfter(weekSunday)
-            val label = if (isCurrentWeek) "Atual" else "Sem $weekNum"
-
-            list.add(Triple(label, count, isCurrentWeek))
-            currentMonday = currentMonday.plusWeeks(1)
-            weekNum++
+            list
         }
-        list
     }
 
     if (weeksData.isEmpty()) {
