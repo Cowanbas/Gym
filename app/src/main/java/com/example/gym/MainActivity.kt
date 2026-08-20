@@ -1,0 +1,1162 @@
+package com.example.gym
+
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
+import androidx.activity.enableEdgeToEdge
+import android.content.Context
+import android.os.Bundle
+import androidx.activity.ComponentActivity
+import androidx.activity.compose.setContent
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.runtime.snapshots.SnapshotStateMap
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import org.json.JSONArray
+import org.json.JSONObject
+import java.time.LocalDate
+import java.time.YearMonth
+import java.time.format.DateTimeFormatter
+import java.time.format.TextStyle as JavaTextStyle
+import java.util.Locale
+
+class MainActivity : ComponentActivity() {
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        enableEdgeToEdge()
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) {
+            window.isNavigationBarContrastEnforced = false
+        }
+        setContent {
+            GymTheme {
+                MainHomeScreen()
+            }
+        }
+    }
+}
+
+// --- TEMA MONOCROMÁTICO (FOSSIFY STYLE) ---
+object AppTheme {
+    val bg = Color(0xFF101010)
+    val card = Color(0xFF101010)
+    val border = Color(0xFF242424)
+    val hover = Color(0xFF1A1A1A)
+    val text = Color(0xFFFFFFFF)
+    val muted = Color(0xFF888888)
+}
+
+@Composable
+fun GymTheme(content: @Composable () -> Unit) {
+    MaterialTheme(
+        colorScheme = darkColorScheme(
+            background = AppTheme.bg,
+            surface = AppTheme.card,
+            primary = AppTheme.text,
+            onBackground = AppTheme.text,
+            onSurface = AppTheme.text
+        ),
+        content = content
+    )
+}
+
+// --- MODELOS ---
+data class Exercise(
+    val id: String = System.nanoTime().toString(),
+    val name: String = "",
+    val sets: Int = 3,
+    val reps: Int = 10,
+    val weight: Double = 0.0
+) {
+    fun toJson(): JSONObject = JSONObject().apply {
+        put("id", id); put("name", name); put("sets", sets); put("reps", reps); put("weight", weight)
+    }
+
+    companion object {
+        fun fromJson(json: JSONObject) = Exercise(
+            id = json.optString("id", System.nanoTime().toString()),
+            name = json.optString("name", ""),
+            sets = json.optInt("sets", 0),
+            reps = json.optInt("reps", 0),
+            weight = json.optDouble("weight", 0.0)
+        )
+    }
+}
+
+data class Routine(
+    val title: String = "Treino",
+    val exercises: List<Exercise> = emptyList()
+) {
+    fun toJson(): JSONObject = JSONObject().apply {
+        put("title", title)
+        put("exercises", JSONArray().also { arr -> exercises.forEach { arr.put(it.toJson()) } })
+    }
+
+    companion object {
+        fun fromJson(json: JSONObject): Routine {
+            val arr = json.optJSONArray("exercises")
+            val list = mutableListOf<Exercise>()
+            if (arr != null) for (i in 0 until arr.length()) list.add(Exercise.fromJson(arr.getJSONObject(i)))
+            return Routine(json.optString("title", "Treino"), list)
+        }
+    }
+}
+
+data class WorkoutHistory(
+    val date: String,
+    val routineKey: String = "",
+    val routineTitle: String = "Treino",
+    val exercises: List<Exercise> = emptyList()
+) {
+    fun toJson(): JSONObject = JSONObject().apply {
+        put("date", date)
+        put("routineKey", routineKey)
+        put("routineTitle", routineTitle)
+        put("exercises", JSONArray().also { arr -> exercises.forEach { arr.put(it.toJson()) } })
+    }
+
+    companion object {
+        fun fromJson(json: JSONObject): WorkoutHistory {
+            val arr = json.optJSONArray("exercises")
+            val list = mutableListOf<Exercise>()
+            if (arr != null) for (i in 0 until arr.length()) list.add(Exercise.fromJson(arr.getJSONObject(i)))
+            return WorkoutHistory(
+                date = json.optString("date", ""),
+                routineKey = json.optString("routineKey", ""),
+                routineTitle = json.optString("routineTitle", "Treino"),
+                exercises = list
+            )
+        }
+    }
+}
+
+// --- PERSISTÊNCIA OTIMIZADA ---
+object Store {
+    private const val PREFS = "gym_store"
+    private const val KEY_ROUTINES = "routines"
+    private const val KEY_HISTORY = "history"
+
+    private fun prefs(ctx: Context) = ctx.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+
+    suspend fun loadRoutines(ctx: Context): Map<String, Routine>? = withContext(Dispatchers.IO) {
+        val raw = prefs(ctx).getString(KEY_ROUTINES, null) ?: return@withContext null
+        runCatching {
+            val obj = JSONObject(raw)
+            buildMap {
+                obj.keys().forEach { k -> put(k, Routine.fromJson(obj.getJSONObject(k))) }
+            }
+        }.getOrNull()
+    }
+
+    suspend fun loadHistory(ctx: Context): Map<String, WorkoutHistory> = withContext(Dispatchers.IO) {
+        val raw = prefs(ctx).getString(KEY_HISTORY, null) ?: return@withContext emptyMap()
+        runCatching {
+            val obj = JSONObject(raw)
+            buildMap {
+                obj.keys().forEach { k -> put(k, WorkoutHistory.fromJson(obj.getJSONObject(k))) }
+            }
+        }.getOrDefault(emptyMap())
+    }
+
+    suspend fun saveRoutines(ctx: Context, routines: Map<String, Routine>) = withContext(Dispatchers.IO) {
+        val obj = JSONObject()
+        routines.forEach { (k, v) -> obj.put(k, v.toJson()) }
+        prefs(ctx).edit().putString(KEY_ROUTINES, obj.toString()).apply()
+    }
+
+    suspend fun saveHistory(ctx: Context, history: Map<String, WorkoutHistory>) = withContext(Dispatchers.IO) {
+        val obj = JSONObject()
+        history.forEach { (k, v) -> obj.put(k, v.toJson()) }
+        prefs(ctx).edit().putString(KEY_HISTORY, obj.toString()).apply()
+    }
+
+    fun defaultRoutines(): Map<String, Routine> = mapOf(
+        "segunda" to Routine("( inserir )", emptyList()),
+        "terca" to Routine("( inserir )", emptyList()),
+        "quarta" to Routine("( inserir )", emptyList()),
+        "quinta" to Routine("( inserir )", emptyList()),
+        "sexta" to Routine("( inserir )", emptyList()),
+        "sabado" to Routine("( inserir )", emptyList()),
+        "domingo" to Routine("( inserir )", emptyList())
+    )
+}
+
+val DATE_FMT: DateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
+fun fmt(date: LocalDate): String = date.format(DATE_FMT)
+val DAY_KEYS = listOf("segunda", "terca", "quarta", "quinta", "sexta", "sabado", "domingo")
+
+data class WeekDay(val key: String, val name: String, val short: String)
+
+val WEEK_DAYS = listOf(
+    WeekDay("segunda", "Segunda-Feira", "Seg"),
+    WeekDay("terca", "Terça-Feira", "Ter"),
+    WeekDay("quarta", "Quarta-Feira", "Qua"),
+    WeekDay("quinta", "Quinta-Feira", "Qui"),
+    WeekDay("sexta", "Sexta-Feira", "Sex"),
+    WeekDay("sabado", "Sábado", "Sáb"),
+    WeekDay("domingo", "Domingo", "Dom")
+)
+
+fun routineKeyForDate(date: LocalDate): String = DAY_KEYS[date.dayOfWeek.value - 1]
+
+// --- TELA PRINCIPAL ---
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
+@Composable
+fun MainHomeScreen() {
+    val context = LocalContext.current
+    val pagerState = rememberPagerState(pageCount = { 2 })
+
+    val routines = remember { mutableStateMapOf<String, Routine>() }
+    val history = remember { mutableStateMapOf<String, WorkoutHistory>() }
+    var loaded by remember { mutableStateOf(false) }
+
+    val snackbarHostState = remember { SnackbarHostState() }
+    val scope = rememberCoroutineScope()
+
+    LaunchedEffect(Unit) {
+        val loadedRoutines = Store.loadRoutines(context) ?: Store.defaultRoutines()
+        val loadedHistory = Store.loadHistory(context)
+        routines.putAll(loadedRoutines)
+        history.putAll(loadedHistory)
+        loaded = true
+    }
+
+    fun persistRoutines() = scope.launch { Store.saveRoutines(context, routines.toMap()) }
+    fun persistHistory() = scope.launch { Store.saveHistory(context, history.toMap()) }
+    fun toast(msg: String) = scope.launch { snackbarHostState.showSnackbar(msg) }
+
+    val todayKey = routineKeyForDate(LocalDate.now())
+    val todayStr = fmt(LocalDate.now())
+
+    Scaffold(
+        containerColor = AppTheme.card,
+        snackbarHost = { SnackbarHost(snackbarHostState) },
+        bottomBar = {
+            NavigationBar(
+                containerColor = AppTheme.card,
+                tonalElevation = 0.dp,
+                modifier = Modifier.height(80.dp)
+            ) {
+                NavigationBarItem(
+                    selected = pagerState.currentPage == 0,
+                    onClick = { scope.launch { pagerState.scrollToPage(0) } }, // Mudança instantânea sem animação
+                    icon = { Icon(Icons.Default.Checklist, null, modifier = Modifier.size(26.dp)) },
+                    colors = NavigationBarItemDefaults.colors(
+                        selectedIconColor = AppTheme.text,
+                        unselectedIconColor = AppTheme.muted,
+                        indicatorColor = AppTheme.hover
+                    )
+                )
+                NavigationBarItem(
+                    selected = pagerState.currentPage == 1,
+                    onClick = { scope.launch { pagerState.scrollToPage(1) } }, // Mudança instantânea sem animação
+                    icon = { Icon(Icons.Default.CalendarMonth, null, modifier = Modifier.size(26.dp)) },
+                    colors = NavigationBarItemDefaults.colors(
+                        selectedIconColor = AppTheme.text,
+                        unselectedIconColor = AppTheme.muted,
+                        indicatorColor = AppTheme.hover
+                    )
+                )
+            }
+        }
+    ) { padding ->
+        Box(modifier = Modifier.fillMaxSize().padding(padding)) {
+            if (!loaded) {
+                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    CircularProgressIndicator(color = AppTheme.text)
+                }
+            } else {
+                HorizontalPager(
+                    state = pagerState,
+                    modifier = Modifier.fillMaxSize()
+                ) { page ->
+                    when (page) {
+                        0 -> RoutinesTab(
+                            routines = routines,
+                            history = history,
+                            todayKey = todayKey,
+                            formattedToday = todayStr,
+                            onRoutineUpdated = { key, routine ->
+                                routines[key] = routine
+                                persistRoutines()
+                                toast("Treino salvo.")
+                            },
+                            onCompleteToday = { key, routine ->
+                                history[todayStr] = WorkoutHistory(todayStr, key, routine.title, routine.exercises)
+                                persistHistory()
+                                toast("Treino concluído!")
+                            }
+                        )
+                        1 -> ConstancyTab(
+                            history = history,
+                            routines = routines,
+                            onSaveWorkout = { item ->
+                                history[item.date] = item
+                                persistHistory()
+                                toast("Registro salvo.")
+                            },
+                            onDeleteWorkout = { dateKey ->
+                                history.remove(dateKey)
+                                persistHistory()
+                                toast("Registro apagado.")
+                            }
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+// ==========================================
+// ABA 1: TREINOS DA SEMANA
+// ==========================================
+@Composable
+fun RoutinesTab(
+    routines: Map<String, Routine>,
+    history: Map<String, WorkoutHistory>,
+    todayKey: String,
+    formattedToday: String,
+    onRoutineUpdated: (String, Routine) -> Unit,
+    onCompleteToday: (String, Routine) -> Unit
+) {
+    var editingKey by remember { mutableStateOf<String?>(null) }
+    val todayShort = WEEK_DAYS.first { it.key == todayKey }.short
+
+    LazyColumn(
+        modifier = Modifier.fillMaxSize().padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(10.dp)
+    ) {
+        item {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text("Treinos da Semana", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = AppTheme.text)
+                Box(
+                    modifier = Modifier
+                        .background(AppTheme.hover, RoundedCornerShape(20.dp))
+                        .border(1.dp, AppTheme.border, RoundedCornerShape(20.dp))
+                        .padding(horizontal = 10.dp, vertical = 4.dp)
+                ) {
+                    Text("Hoje: $todayShort", fontSize = 12.sp, color = AppTheme.text, fontWeight = FontWeight.Bold)
+                }
+            }
+        }
+
+        items(WEEK_DAYS, key = { it.key }) { day ->
+            val routine = routines[day.key] ?: Routine("( inserir )")
+            val isToday = day.key == todayKey
+            val isDoneToday = isToday && history.containsKey(formattedToday)
+
+            Card(
+                colors = CardDefaults.cardColors(containerColor = AppTheme.card),
+                shape = RoundedCornerShape(10.dp),
+                border = BorderStroke(
+                    width = if (isToday) 1.5.dp else 1.dp,
+                    color = if (isToday) AppTheme.text.copy(alpha = 0.6f) else AppTheme.border
+                ),
+                modifier = Modifier.fillMaxWidth().clickable { editingKey = day.key }
+            ) {
+                Row(modifier = Modifier.padding(14.dp), verticalAlignment = Alignment.CenterVertically) {
+                    Box(
+                        modifier = Modifier
+                            .size(40.dp)
+                            .background(
+                                color = if (isToday) AppTheme.text else AppTheme.hover,
+                                shape = RoundedCornerShape(8.dp)
+                            )
+                            .then(if (!isToday) Modifier.border(1.dp, AppTheme.border, RoundedCornerShape(8.dp)) else Modifier),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            day.short.uppercase(),
+                            fontSize = 11.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = if (isToday) Color.Black else AppTheme.muted
+                        )
+                    }
+                    Spacer(Modifier.width(14.dp))
+                    Column(modifier = Modifier.weight(1f)) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text(routine.title, fontWeight = FontWeight.Bold, fontSize = 14.sp, color = AppTheme.text)
+                            if (isToday) {
+                                Spacer(Modifier.width(8.dp))
+                                Box(
+                                    modifier = Modifier
+                                        .background(AppTheme.hover, RoundedCornerShape(4.dp))
+                                        .border(1.dp, AppTheme.border, RoundedCornerShape(4.dp))
+                                        .padding(horizontal = 5.dp, vertical = 1.dp)
+                                ) {
+                                    Text("HOJE", fontSize = 8.sp, color = AppTheme.text, fontWeight = FontWeight.Bold)
+                                }
+                            }
+                        }
+                        Text(
+                            "${routine.exercises.size} ${if (routine.exercises.size == 1) "exercício" else "exercícios"}",
+                            fontSize = 11.sp,
+                            color = AppTheme.muted
+                        )
+                    }
+                    if (isDoneToday) {
+                        Icon(Icons.Default.CheckCircle, null, tint = AppTheme.text, modifier = Modifier.size(18.dp))
+                        Spacer(Modifier.width(6.dp))
+                    }
+                    Icon(Icons.Default.ChevronRight, null, tint = AppTheme.muted, modifier = Modifier.size(16.dp))
+                }
+            }
+        }
+    }
+
+    editingKey?.let { key ->
+        val routine = routines[key] ?: Routine("( inserir )")
+        val isToday = key == todayKey
+        RoutineEditModal(
+            routine = routine,
+            isToday = isToday,
+            onDismiss = { editingKey = null },
+            onSave = { updated ->
+                onRoutineUpdated(key, updated)
+                editingKey = null
+            },
+            onComplete = { updated ->
+                onRoutineUpdated(key, updated)
+                onCompleteToday(key, updated)
+                editingKey = null
+            }
+        )
+    }
+}
+
+// --- EDITOR DE EXERCÍCIOS OTIMIZADO ---
+@Composable
+fun ExerciseEditorList(
+    exercises: MutableList<Exercise>,
+    onAdd: () -> Unit
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Icon(Icons.Default.FitnessCenter, null, tint = AppTheme.text, modifier = Modifier.size(15.dp))
+            Spacer(Modifier.width(6.dp))
+            Text("Exercícios", fontWeight = FontWeight.Bold, fontSize = 13.sp, color = AppTheme.text)
+        }
+        TextButton(onClick = onAdd) {
+            Icon(Icons.Default.Add, null, tint = AppTheme.text, modifier = Modifier.size(15.dp))
+            Spacer(Modifier.width(2.dp))
+            Text("Adicionar", color = AppTheme.text, fontSize = 12.sp)
+        }
+    }
+    HorizontalDivider(color = AppTheme.border)
+    Spacer(Modifier.height(6.dp))
+
+    if (exercises.isEmpty()) {
+        Box(Modifier.fillMaxWidth().padding(20.dp), contentAlignment = Alignment.Center) {
+            Text("Nenhum exercício cadastrado.", color = AppTheme.muted, fontSize = 12.sp)
+        }
+    } else {
+        exercises.forEachIndexed { idx, ex ->
+            key(ex.id) {
+                ExerciseCardItem(
+                    exercise = ex,
+                    onChanged = { updated -> exercises[idx] = updated },
+                    onDelete = { exercises.removeAt(idx) }
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun ExerciseCardItem(
+    exercise: Exercise,
+    onChanged: (Exercise) -> Unit,
+    onDelete: () -> Unit
+) {
+    Card(
+        colors = CardDefaults.cardColors(containerColor = AppTheme.hover),
+        shape = RoundedCornerShape(8.dp),
+        border = BorderStroke(1.dp, AppTheme.border),
+        modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp)
+    ) {
+        Column(modifier = Modifier.padding(10.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                OutlinedTextField(
+                    value = exercise.name,
+                    onValueChange = { onChanged(exercise.copy(name = it)) },
+                    modifier = Modifier.weight(1f),
+                    singleLine = true,
+                    placeholder = { Text("Nome do Exercício", color = AppTheme.muted, fontSize = 12.sp) },
+                    textStyle = TextStyle(fontSize = 12.sp, fontWeight = FontWeight.Bold, color = AppTheme.text),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = AppTheme.text,
+                        unfocusedBorderColor = AppTheme.border,
+                        cursorColor = AppTheme.text
+                    )
+                )
+                IconButton(onClick = onDelete, modifier = Modifier.size(36.dp)) {
+                    Icon(Icons.Default.Delete, "Apagar", tint = AppTheme.muted, modifier = Modifier.size(18.dp))
+                }
+            }
+            Spacer(Modifier.height(6.dp))
+            Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                NumberInputField("Séries", exercise.sets.toString(), Modifier.weight(1f)) {
+                    onChanged(exercise.copy(sets = it.toIntOrNull() ?: 0))
+                }
+                NumberInputField("Reps", exercise.reps.toString(), Modifier.weight(1f)) {
+                    onChanged(exercise.copy(reps = it.toIntOrNull() ?: 0))
+                }
+                NumberInputField("Carga (kg)", trimNumber(exercise.weight), Modifier.weight(1f), decimal = true) {
+                    onChanged(exercise.copy(weight = it.replace(',', '.').toDoubleOrNull() ?: 0.0))
+                }
+            }
+        }
+    }
+}
+
+fun trimNumber(v: Double): String = if (v % 1.0 == 0.0) v.toInt().toString() else v.toString()
+
+@Composable
+fun NumberInputField(
+    label: String,
+    value: String,
+    modifier: Modifier = Modifier,
+    decimal: Boolean = false,
+    onChanged: (String) -> Unit
+) {
+    var text by remember(value) { mutableStateOf(value) }
+    Column(modifier = modifier) {
+        Text(label, fontSize = 10.sp, color = AppTheme.muted)
+        Spacer(Modifier.height(2.dp))
+        OutlinedTextField(
+            value = text,
+            onValueChange = { input ->
+                val filtered = input.filter { it.isDigit() || (decimal && (it == '.' || it == ',')) }
+                text = filtered
+                onChanged(filtered)
+            },
+            singleLine = true,
+            keyboardOptions = KeyboardOptions(
+                keyboardType = if (decimal) KeyboardType.Decimal else KeyboardType.Number
+            ),
+            textStyle = TextStyle(fontSize = 12.sp, color = AppTheme.text, textAlign = TextAlign.Center),
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedBorderColor = AppTheme.text,
+                unfocusedBorderColor = AppTheme.border,
+                cursorColor = AppTheme.text
+            ),
+            modifier = Modifier.fillMaxWidth()
+        )
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun RoutineEditModal(
+    routine: Routine,
+    isToday: Boolean,
+    onDismiss: () -> Unit,
+    onSave: (Routine) -> Unit,
+    onComplete: (Routine) -> Unit
+) {
+    var title by remember { mutableStateOf(routine.title) }
+    val exercises = remember { routine.exercises.toMutableStateList() }
+
+    ModalBottomSheet(onDismissRequest = onDismiss, containerColor = AppTheme.card) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp)
+                .verticalScroll(rememberScrollState())
+        ) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                OutlinedTextField(
+                    value = title,
+                    onValueChange = { title = it },
+                    modifier = Modifier.weight(1f),
+                    singleLine = true,
+                    label = { Text("Nome do treino", color = AppTheme.muted) },
+                    textStyle = TextStyle(fontSize = 16.sp, fontWeight = FontWeight.Bold, color = AppTheme.text),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = AppTheme.text,
+                        unfocusedBorderColor = AppTheme.border,
+                        cursorColor = AppTheme.text
+                    )
+                )
+                IconButton(onClick = onDismiss) {
+                    Icon(Icons.Default.Close, "Fechar", tint = AppTheme.muted)
+                }
+            }
+            Spacer(Modifier.height(10.dp))
+
+            ExerciseEditorList(exercises) { exercises.add(Exercise()) }
+
+            Spacer(Modifier.height(16.dp))
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                Button(
+                    onClick = { onSave(Routine(title.ifBlank { "( inserir )" }, exercises.toList())) },
+                    colors = ButtonDefaults.buttonColors(containerColor = AppTheme.hover),
+                    border = BorderStroke(1.dp, AppTheme.border),
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Icon(Icons.Default.Save, null, tint = AppTheme.text, modifier = Modifier.size(15.dp))
+                    Spacer(Modifier.width(6.dp))
+                    Text("Salvar", color = AppTheme.text)
+                }
+                if (isToday) {
+                    Button(
+                        onClick = { onComplete(Routine(title.ifBlank { "( inserir )" }, exercises.toList())) },
+                        colors = ButtonDefaults.buttonColors(containerColor = AppTheme.text),
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Icon(Icons.Default.Check, null, tint = Color.Black, modifier = Modifier.size(15.dp))
+                        Spacer(Modifier.width(6.dp))
+                        Text("Concluir", color = Color.Black, fontWeight = FontWeight.Bold)
+                    }
+                }
+            }
+            Spacer(Modifier.height(32.dp))
+        }
+    }
+}
+
+// ==========================================
+// ABA 2: CALENDÁRIO / CONSTÂNCIA / HISTÓRICO
+// ==========================================
+@Composable
+fun ConstancyTab(
+    history: SnapshotStateMap<String, WorkoutHistory>,
+    routines: Map<String, Routine>,
+    onSaveWorkout: (WorkoutHistory) -> Unit,
+    onDeleteWorkout: (String) -> Unit
+) {
+    var selectedMonth by remember { mutableStateOf(YearMonth.now()) }
+    var weeklyMonth by remember { mutableStateOf(YearMonth.now()) }
+    var selectedDateKey by remember { mutableStateOf<String?>(null) }
+    var editing by remember { mutableStateOf<WorkoutHistory?>(null) }
+    var confirmDelete by remember { mutableStateOf<String?>(null) }
+
+    val streak by remember(history) {
+        derivedStateOf {
+            var count = 0
+            var date = LocalDate.now()
+            if (!history.containsKey(fmt(date))) date = date.minusDays(1)
+            while (history.containsKey(fmt(date))) {
+                count++
+                date = date.minusDays(1)
+            }
+            count
+        }
+    }
+
+    val monthCount by remember(history, selectedMonth) {
+        derivedStateOf {
+            val prefix = String.format(Locale.US, "%d-%02d", selectedMonth.year, selectedMonth.monthValue)
+            history.keys.count { it.startsWith(prefix) }
+        }
+    }
+
+    LazyColumn(
+        modifier = Modifier.fillMaxSize().padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        item {
+            Row(horizontalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.fillMaxWidth()) {
+                MetricCard(Icons.Default.LocalFireDepartment, streak.toString(), "Sequência Atual", Modifier.weight(1f))
+                MetricCard(Icons.Default.CalendarToday, monthCount.toString(), "Treinos no Mês", Modifier.weight(1f))
+            }
+        }
+
+        item {
+            SectionCard(Icons.Default.BarChart, "Constância (16 Semanas)") {
+                Box(Modifier.height(100.dp).fillMaxWidth()) { HeatmapGrid(history) }
+            }
+        }
+
+        item {
+            SectionCard(Icons.Default.ShowChart, "Semanas do Mês") {
+                Column {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        IconButton(onClick = { weeklyMonth = weeklyMonth.minusMonths(1) }) {
+                            Icon(Icons.Default.ChevronLeft, "Mês anterior", tint = AppTheme.text)
+                        }
+                        Text(
+                            "${weeklyMonth.month.getDisplayName(JavaTextStyle.FULL, Locale("pt", "BR")).uppercase()} ${weeklyMonth.year}",
+                            fontWeight = FontWeight.Bold, fontSize = 12.sp, color = AppTheme.text
+                        )
+                        IconButton(onClick = { weeklyMonth = weeklyMonth.plusMonths(1) }) {
+                            Icon(Icons.Default.ChevronRight, "Próximo mês", tint = AppTheme.text)
+                        }
+                    }
+                    Spacer(Modifier.height(6.dp))
+                    Box(Modifier.height(110.dp).fillMaxWidth()) { WeeklyBarChart(history, weeklyMonth) }
+                }
+            }
+        }
+
+        item {
+            Card(
+                colors = CardDefaults.cardColors(containerColor = AppTheme.card),
+                shape = RoundedCornerShape(10.dp),
+                border = BorderStroke(1.dp, AppTheme.border),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Column(modifier = Modifier.padding(12.dp)) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        IconButton(onClick = { selectedMonth = selectedMonth.minusMonths(1) }) {
+                            Icon(Icons.Default.ChevronLeft, "Mês anterior", tint = AppTheme.text)
+                        }
+                        Text(
+                            "${selectedMonth.month.getDisplayName(JavaTextStyle.FULL, Locale("pt", "BR")).uppercase()} ${selectedMonth.year}",
+                            fontWeight = FontWeight.Bold, fontSize = 13.sp, color = AppTheme.text
+                        )
+                        IconButton(onClick = { selectedMonth = selectedMonth.plusMonths(1) }) {
+                            Icon(Icons.Default.ChevronRight, "Próximo mês", tint = AppTheme.text)
+                        }
+                    }
+                    Spacer(Modifier.height(6.dp))
+                    CalendarGrid(
+                        selectedMonth = selectedMonth,
+                        history = history,
+                        selectedDateKey = selectedDateKey,
+                        onDateSelected = { selectedDateKey = it }
+                    )
+                }
+            }
+        }
+
+        selectedDateKey?.let { dateKey ->
+            item {
+                DayDetailCard(
+                    dateKey = dateKey,
+                    historyItem = history[dateKey],
+                    onClose = { selectedDateKey = null },
+                    onEdit = { editing = it },
+                    onAdd = {
+                        val date = LocalDate.parse(dateKey, DATE_FMT)
+                        val key = routineKeyForDate(date)
+                        val base = routines[key]
+                        editing = WorkoutHistory(
+                            date = dateKey,
+                            routineKey = key,
+                            routineTitle = base?.title ?: "( inserir )",
+                            exercises = base?.exercises?.map { it.copy(id = System.nanoTime().toString() + it.id) } ?: emptyList()
+                        )
+                    },
+                    onDelete = { confirmDelete = dateKey }
+                )
+            }
+        }
+
+        item { Spacer(Modifier.height(16.dp)) }
+    }
+
+    editing?.let { item ->
+        HistoryEditModal(
+            item = item,
+            onDismiss = { editing = null },
+            onSave = {
+                onSaveWorkout(it)
+                editing = null
+            }
+        )
+    }
+
+    confirmDelete?.let { dateKey ->
+        AlertDialog(
+            onDismissRequest = { confirmDelete = null },
+            containerColor = AppTheme.card,
+            title = { Text("Apagar treino?", color = AppTheme.text) },
+            text = { Text("O registro de $dateKey será removido permanentemente.", color = AppTheme.muted) },
+            confirmButton = {
+                TextButton(onClick = {
+                    onDeleteWorkout(dateKey)
+                    confirmDelete = null
+                }) { Text("Apagar", color = AppTheme.text) }
+            },
+            dismissButton = {
+                TextButton(onClick = { confirmDelete = null }) { Text("Cancelar", color = AppTheme.muted) }
+            }
+        )
+    }
+}
+
+@Composable
+fun SectionCard(icon: ImageVector, title: String, content: @Composable ColumnScope.() -> Unit) {
+    Card(
+        colors = CardDefaults.cardColors(containerColor = AppTheme.card),
+        shape = RoundedCornerShape(10.dp),
+        border = BorderStroke(1.dp, AppTheme.border),
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Column(modifier = Modifier.padding(12.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(icon, null, tint = AppTheme.text, modifier = Modifier.size(15.dp))
+                Spacer(Modifier.width(6.dp))
+                Text(title, fontWeight = FontWeight.Bold, fontSize = 12.sp, color = AppTheme.text)
+            }
+            Spacer(Modifier.height(10.dp))
+            content()
+        }
+    }
+}
+
+@Composable
+fun MetricCard(icon: ImageVector, value: String, label: String, modifier: Modifier = Modifier) {
+    Card(
+        colors = CardDefaults.cardColors(containerColor = AppTheme.card),
+        shape = RoundedCornerShape(10.dp),
+        border = BorderStroke(1.dp, AppTheme.border),
+        modifier = modifier
+    ) {
+        Row(modifier = Modifier.padding(10.dp), verticalAlignment = Alignment.CenterVertically) {
+            Box(
+                modifier = Modifier
+                    .background(AppTheme.hover, RoundedCornerShape(8.dp))
+                    .border(1.dp, AppTheme.border, RoundedCornerShape(8.dp))
+                    .padding(6.dp)
+            ) {
+                Icon(icon, null, tint = AppTheme.text, modifier = Modifier.size(20.dp))
+            }
+            Spacer(Modifier.width(8.dp))
+            Column {
+                Text(value, fontSize = 16.sp, fontWeight = FontWeight.Bold, color = AppTheme.text)
+                Text(label, fontSize = 10.sp, color = AppTheme.muted)
+            }
+        }
+    }
+}
+
+@Composable
+fun HeatmapGrid(history: Map<String, WorkoutHistory>) {
+    val now = remember { LocalDate.now() }
+    val days = remember { (111 downTo 0).map { now.minusDays(it.toLong()) } }
+    Box(
+        modifier = Modifier.fillMaxWidth(),
+        contentAlignment = Alignment.Center
+    ) {
+        Row(
+            modifier = Modifier.horizontalScroll(rememberScrollState()),
+            horizontalArrangement = Arrangement.spacedBy(3.dp)
+        ) {
+            days.chunked(7).forEach { colDays ->
+                Column(verticalArrangement = Arrangement.spacedBy(3.dp)) {
+                    colDays.forEach { date ->
+                        Box(
+                            modifier = Modifier
+                                .size(10.dp)
+                                .background(
+                                    if (history.containsKey(fmt(date))) AppTheme.text else AppTheme.hover,
+                                    RoundedCornerShape(2.dp)
+                                )
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun WeeklyBarChart(history: Map<String, WorkoutHistory>, monthlyRef: YearMonth) {
+    val weeksData = remember(history, monthlyRef) {
+        val firstDayOfMonth = monthlyRef.atDay(1)
+        val lastDayOfMonth = monthlyRef.atEndOfMonth()
+        var currentMonday = firstDayOfMonth.with(java.time.temporal.TemporalAdjusters.previousOrSame(java.time.DayOfWeek.MONDAY))
+
+        val list = mutableListOf<Triple<String, Int, Boolean>>()
+        var weekNum = 1
+        val today = LocalDate.now()
+
+        while (currentMonday <= lastDayOfMonth) {
+            val weekSunday = currentMonday.plusDays(6)
+            val count = (0..6).count { dayOffset ->
+                val d = currentMonday.plusDays(dayOffset.toLong())
+                history.containsKey(fmt(d))
+            }
+
+            val isCurrentWeek = !today.isBefore(currentMonday) && !today.isAfter(weekSunday)
+            val label = if (isCurrentWeek) "Atual" else "Sem $weekNum"
+
+            list.add(Triple(label, count, isCurrentWeek))
+            currentMonday = currentMonday.plusWeeks(1)
+            weekNum++
+        }
+        list
+    }
+
+    if (weeksData.isEmpty()) {
+        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            Text("Sem dados", fontSize = 12.sp, color = AppTheme.muted)
+        }
+        return
+    }
+
+    Row(
+        modifier = Modifier.fillMaxSize(),
+        horizontalArrangement = Arrangement.SpaceAround,
+        verticalAlignment = Alignment.Bottom
+    ) {
+        weeksData.forEach { (label, count, isCurrent) ->
+            val heightPct = (count / 7f).coerceIn(0.05f, 1f)
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Text("${count}d", fontSize = 10.sp, color = AppTheme.text, fontWeight = FontWeight.Bold)
+                Spacer(Modifier.height(4.dp))
+                Box(
+                    modifier = Modifier
+                        .width(22.dp)
+                        .height((80 * heightPct).dp)
+                        .background(if (isCurrent) AppTheme.text else AppTheme.muted.copy(alpha = 0.4f), RoundedCornerShape(4.dp))
+                )
+                Spacer(Modifier.height(6.dp))
+                Text(
+                    label,
+                    fontSize = 10.sp,
+                    color = if (isCurrent) AppTheme.text else AppTheme.muted,
+                    fontWeight = if (isCurrent) FontWeight.Bold else FontWeight.Normal
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun CalendarGrid(
+    selectedMonth: YearMonth,
+    history: Map<String, WorkoutHistory>,
+    selectedDateKey: String?,
+    onDateSelected: (String) -> Unit
+) {
+    val firstDay = selectedMonth.atDay(1)
+    val daysInMonth = selectedMonth.lengthOfMonth()
+    val startingWeekday = (firstDay.dayOfWeek.value - 1 + 7) % 7
+    val weekHeaders = listOf("S", "T", "Q", "Q", "S", "S", "D")
+    val today = fmt(LocalDate.now())
+
+    Column {
+        Row(modifier = Modifier.fillMaxWidth()) {
+            weekHeaders.forEach { h ->
+                Text(h, fontSize = 11.sp, fontWeight = FontWeight.Bold, color = AppTheme.muted,
+                    textAlign = TextAlign.Center, modifier = Modifier.weight(1f))
+            }
+        }
+        Spacer(Modifier.height(4.dp))
+
+        val rows = (startingWeekday + daysInMonth + 6) / 7
+        for (r in 0 until rows) {
+            Row(modifier = Modifier.fillMaxWidth()) {
+                for (c in 0 until 7) {
+                    val dayNum = (r * 7 + c) - startingWeekday + 1
+                    if (dayNum in 1..daysInMonth) {
+                        val dateKey = fmt(selectedMonth.atDay(dayNum))
+                        val hasWorkout = history.containsKey(dateKey)
+                        val isSelected = selectedDateKey == dateKey
+                        val isToday = dateKey == today
+                        Box(
+                            modifier = Modifier
+                                .weight(1f)
+                                .aspectRatio(1f)
+                                .padding(2.dp)
+                                .background(if (hasWorkout) AppTheme.text else AppTheme.hover, CircleShape)
+                                .then(
+                                    when {
+                                        isSelected -> Modifier.border(2.dp, AppTheme.muted, CircleShape)
+                                        isToday -> Modifier.border(1.dp, AppTheme.text, CircleShape)
+                                        else -> Modifier
+                                    }
+                                )
+                                .clickable { onDateSelected(dateKey) },
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text("$dayNum", fontSize = 11.sp, fontWeight = FontWeight.Bold,
+                                color = if (hasWorkout) Color.Black else AppTheme.text)
+                        }
+                    } else {
+                        Spacer(Modifier.weight(1f).aspectRatio(1f))
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun DayDetailCard(
+    dateKey: String,
+    historyItem: WorkoutHistory?,
+    onClose: () -> Unit,
+    onEdit: (WorkoutHistory) -> Unit,
+    onAdd: () -> Unit,
+    onDelete: () -> Unit
+) {
+    Card(
+        colors = CardDefaults.cardColors(containerColor = AppTheme.card),
+        shape = RoundedCornerShape(10.dp),
+        border = BorderStroke(1.dp, AppTheme.border),
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Column(modifier = Modifier.padding(12.dp)) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text("Dia $dateKey", fontWeight = FontWeight.Bold, fontSize = 12.sp, color = AppTheme.text)
+                IconButton(onClick = onClose, modifier = Modifier.size(30.dp)) {
+                    Icon(Icons.Default.Close, "Fechar", tint = AppTheme.muted, modifier = Modifier.size(15.dp))
+                }
+            }
+            HorizontalDivider(color = AppTheme.border)
+            Spacer(Modifier.height(8.dp))
+
+            if (historyItem == null) {
+                Text("Nenhum treino registrado neste dia.", color = AppTheme.muted, fontSize = 12.sp)
+                Spacer(Modifier.height(10.dp))
+                Button(
+                    onClick = onAdd,
+                    colors = ButtonDefaults.buttonColors(containerColor = AppTheme.text),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Icon(Icons.Default.Add, null, tint = Color.Black, modifier = Modifier.size(15.dp))
+                    Spacer(Modifier.width(6.dp))
+                    Text("Adicionar treino neste dia", color = Color.Black, fontWeight = FontWeight.Bold)
+                }
+            } else {
+                Text(historyItem.routineTitle, fontWeight = FontWeight.Bold, fontSize = 14.sp, color = AppTheme.text)
+                Spacer(Modifier.height(6.dp))
+                historyItem.exercises.forEach { ex ->
+                    Row(
+                        modifier = Modifier.fillMaxWidth().padding(vertical = 2.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Text(ex.name.ifBlank { "Exercício" }, fontSize = 11.sp, color = AppTheme.text)
+                        Text("${ex.sets}x${ex.reps} • ${trimNumber(ex.weight)}kg", fontSize = 11.sp, color = AppTheme.muted)
+                    }
+                }
+                if (historyItem.exercises.isEmpty()) {
+                    Text("Sem exercícios neste registro.", fontSize = 11.sp, color = AppTheme.muted)
+                }
+                Spacer(Modifier.height(10.dp))
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Button(
+                        onClick = { onEdit(historyItem) },
+                        colors = ButtonDefaults.buttonColors(containerColor = AppTheme.hover),
+                        border = BorderStroke(1.dp, AppTheme.border),
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Icon(Icons.Default.Edit, null, tint = AppTheme.text, modifier = Modifier.size(15.dp))
+                        Spacer(Modifier.width(6.dp))
+                        Text("Editar", color = AppTheme.text)
+                    }
+                    Button(
+                        onClick = onDelete,
+                        colors = ButtonDefaults.buttonColors(containerColor = AppTheme.hover),
+                        border = BorderStroke(1.dp, AppTheme.border),
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Icon(Icons.Default.Delete, null, tint = AppTheme.text, modifier = Modifier.size(15.dp))
+                        Spacer(Modifier.width(6.dp))
+                        Text("Apagar", color = AppTheme.text)
+                    }
+                }
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun HistoryEditModal(
+    item: WorkoutHistory,
+    onDismiss: () -> Unit,
+    onSave: (WorkoutHistory) -> Unit
+) {
+    var title by remember { mutableStateOf(item.routineTitle) }
+    val exercises = remember { item.exercises.toMutableStateList() }
+
+    ModalBottomSheet(onDismissRequest = onDismiss, containerColor = AppTheme.card) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp)
+                .verticalScroll(rememberScrollState())
+        ) {
+            Text("Treino de ${item.date}", fontSize = 11.sp, color = AppTheme.muted)
+            Spacer(Modifier.height(4.dp))
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                OutlinedTextField(
+                    value = title,
+                    onValueChange = { title = it },
+                    modifier = Modifier.weight(1f),
+                    singleLine = true,
+                    label = { Text("Nome do treino", color = AppTheme.muted) },
+                    textStyle = TextStyle(fontSize = 16.sp, fontWeight = FontWeight.Bold, color = AppTheme.text),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = AppTheme.text,
+                        unfocusedBorderColor = AppTheme.border,
+                        cursorColor = AppTheme.text
+                    )
+                )
+                IconButton(onClick = onDismiss) {
+                    Icon(Icons.Default.Close, "Fechar", tint = AppTheme.muted)
+                }
+            }
+            Spacer(Modifier.height(10.dp))
+
+            ExerciseEditorList(exercises) { exercises.add(Exercise()) }
+
+            Spacer(Modifier.height(16.dp))
+            Button(
+                onClick = {
+                    onSave(item.copy(routineTitle = title.ifBlank { "( inserir )" }, exercises = exercises.toList()))
+                },
+                colors = ButtonDefaults.buttonColors(containerColor = AppTheme.text),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Icon(Icons.Default.Save, null, tint = Color.Black, modifier = Modifier.size(15.dp))
+                Spacer(Modifier.width(6.dp))
+                Text("Salvar registro", color = Color.Black, fontWeight = FontWeight.Bold)
+            }
+            Spacer(Modifier.height(32.dp))
+        }
+    }
+}

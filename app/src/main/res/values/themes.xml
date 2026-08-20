@@ -1,0 +1,9 @@
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <!-- Mudamos para NoActionBar para o Compose controlar a tela inteira -->
+    <style name="Theme.Gym" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+        <!-- Status bar transparente -->
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <!-- Navigation bar transparente para o rodapé vazar para baixo -->
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+    </style>
+</resources>
