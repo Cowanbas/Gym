@@ -30,7 +30,7 @@ O treino que você marca como executado no dia atual será registrado no calend�
 - *Otimização do código para deixar ele mais leve ainda.*
 
 
-# Fotos
+# Imagens
 
 <p align="center">
   <img width="30%" alt="image" src="https://github.com/user-attachments/assets/b0e40d3b-3760-4efe-9138-b0fa88ecfcae" />
