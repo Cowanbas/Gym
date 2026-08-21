@@ -11,4 +11,6 @@ Features que serão adicionadas (se o meu tempo livre permitir)
 
 *Ícone para o aplicativo.*
 
-*Tradução para mais línguas (Atualmente só está em ínglês.* 
+*Tradução para mais línguas (Atualmente só está em inglês.* 
+
+*Aba de cronometro inspirado no aplicativo Clock: https://github.com/FossifyOrg/Clock*
