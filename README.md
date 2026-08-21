@@ -28,6 +28,7 @@ O treino que você marca como executado no dia atual será registrado no calend�
 - *Iniciais maiusculas em todos as caixas de mensagem.* 
 - *Agrupamento das fichas na seleção do calendário.*
 - *Quantidade de séries e repetições irão começar zerados.*
+- *Otimização das animações de scroll.*
 - *Otimização do código para deixar ele mais leve ainda.*
 
 
