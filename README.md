@@ -10,7 +10,7 @@
 
 - *Tradução para mais línguas (Atualmente só está em inglês.* 
 
-- *Aba de cronometro para cronometrar o tempo de descanso dahm*
+- *Aba de cronometro para cronometrar o tempo de descanso*
 
 
 # Supostas próximas correções.
