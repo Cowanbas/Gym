@@ -14,6 +14,7 @@ Aplicativo para guardar fichas de treino e marcar quantos dias foram treinados, 
 
 # Supostas próximas correções
 
+- *Correções ortográficas.*
 - *Correção do tamanho dos textos nas caixas de botões.*
 - *Correção dos textos na aba das fichas.*
 - *Iniciais maíusculas em todos as caixas de mensagem.* 
