@@ -258,13 +258,13 @@ object Store {
     }
 
     fun defaultRoutines(): Map<String, Routine> = mapOf(
-        "monday" to Routine("( insert )", emptyList()),
-        "tuesday" to Routine("( insert )", emptyList()),
-        "wednesday" to Routine("( insert )", emptyList()),
-        "thursday" to Routine("( insert )", emptyList()),
-        "friday" to Routine("( insert )", emptyList()),
-        "saturday" to Routine("( insert )", emptyList()),
-        "sunday" to Routine("( insert )", emptyList())
+        "monday" to Routine("Empty", emptyList()),
+        "tuesday" to Routine("Empty", emptyList()),
+        "wednesday" to Routine("Empty", emptyList()),
+        "thursday" to Routine("Empty", emptyList()),
+        "friday" to Routine("Empty", emptyList()),
+        "saturday" to Routine("Empty", emptyList()),
+        "sunday" to Routine("Empty", emptyList())
     )
 
     fun defaultTemplates(): List<WorkoutTemplate> = listOf(
@@ -444,8 +444,8 @@ fun MainHomeScreen() {
                             onSwapRoutines = { fromIndex, toIndex ->
                                 val keyFrom = WEEK_DAYS[fromIndex].key
                                 val keyTo = WEEK_DAYS[toIndex].key
-                                val temp = routines[keyFrom] ?: Routine("( insert )")
-                                routines[keyFrom] = routines[keyTo] ?: Routine("( insert )")
+                                val temp = routines[keyFrom] ?: Routine("Empty")
+                                routines[keyFrom] = routines[keyTo] ?: Routine("Empty")
                                 routines[keyTo] = temp
                                 persistRoutines()
                             },
@@ -560,7 +560,7 @@ fun RoutinesTab(
         }
 
         itemsIndexed(WEEK_DAYS, key = { _, day -> day.key }) { index, day ->
-            val routine = routines[day.key] ?: Routine("( insert )")
+            val routine = routines[day.key] ?: Routine("Empty")
             val isToday = day.key == todayKey
             val isDoneToday = isToday && history.containsKey(formattedToday)
 
@@ -667,7 +667,7 @@ fun RoutinesTab(
     }
 
     editingKey?.let { key ->
-        val routine = routines[key] ?: Routine("( insert )")
+        val routine = routines[key] ?: Routine("Empty")
         val isToday = key == todayKey
         RoutineEditModal(
             routine = routine,
@@ -744,7 +744,7 @@ fun SettingsModal(onDismiss: () -> Unit) {
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text("Configurações", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = AppTheme.text)
+                Text("Settings", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = AppTheme.text)
                 IconButton(onClick = onDismiss) {
                     Icon(Icons.Default.Close, "Close", tint = AppTheme.muted)
                 }
@@ -928,7 +928,7 @@ fun EditTemplateModal(
             }
 
             items(WEEK_DAYS, key = { it.key }) { day ->
-                val routine = routinesMap[day.key] ?: Routine("( insert )")
+                val routine = routinesMap[day.key] ?: Routine("Empty")
                 Card(
                     colors = CardDefaults.cardColors(containerColor = AppTheme.hover),
                     shape = RoundedCornerShape(8.dp),
@@ -989,7 +989,7 @@ fun EditTemplateModal(
     }
 
     editingDayKey?.let { dayKey ->
-        val routine = routinesMap[dayKey] ?: Routine("( insert )")
+        val routine = routinesMap[dayKey] ?: Routine("Empty")
         RoutineEditModal(
             routine = routine,
             isToday = false,
@@ -1088,7 +1088,7 @@ fun CreateTemplateModal(
             }
 
             items(WEEK_DAYS, key = { it.key }) { day ->
-                val routine = routinesMap[day.key] ?: Routine("( insert )")
+                val routine = routinesMap[day.key] ?: Routine("Empty")
                 Card(
                     colors = CardDefaults.cardColors(containerColor = AppTheme.hover),
                     shape = RoundedCornerShape(8.dp),
@@ -1135,7 +1135,7 @@ fun CreateTemplateModal(
     }
 
     editingDayKey?.let { dayKey ->
-        val routine = routinesMap[dayKey] ?: Routine("( insert )")
+        val routine = routinesMap[dayKey] ?: Routine("Empty")
         RoutineEditModal(
             routine = routine,
             isToday = false,
@@ -1404,7 +1404,7 @@ fun RoutineEditModal(
                 Spacer(Modifier.height(6.dp))
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     Button(
-                        onClick = { onSave(Routine(title.ifBlank { "( insert )" }, exercises.toList())) },
+                        onClick = { onSave(Routine(title.ifBlank { "Empty" }, exercises.toList())) },
                         colors = ButtonDefaults.buttonColors(containerColor = AppTheme.hover),
                         border = BorderStroke(1.dp, AppTheme.border),
                         modifier = Modifier.weight(1f)
@@ -1415,7 +1415,7 @@ fun RoutineEditModal(
                     }
                     if (isToday) {
                         Button(
-                            onClick = { onComplete(Routine(title.ifBlank { "( insert )" }, exercises.toList())) },
+                            onClick = { onComplete(Routine(title.ifBlank { "Empty" }, exercises.toList())) },
                             colors = ButtonDefaults.buttonColors(containerColor = AppTheme.primary),
                             modifier = Modifier.weight(1f)
                         ) {
@@ -1587,7 +1587,7 @@ fun ConstancyTab(
                 editing = WorkoutHistory(
                     date = dateKey,
                     routineKey = key,
-                    routineTitle = base?.title ?: "( insert )",
+                    routineTitle = base?.title ?: "Empty",
                     exercises = base?.exercises?.map { it.copy(id = System.nanoTime().toString() + it.id) } ?: emptyList()
                 )
             },
@@ -2135,7 +2135,7 @@ fun HistoryEditModal(
                 Spacer(Modifier.height(6.dp))
                 Button(
                     onClick = {
-                        onSave(item.copy(routineTitle = title.ifBlank { "( insert )" }, exercises = exercises.toList()))
+                        onSave(item.copy(routineTitle = title.ifBlank { "Empty" }, exercises = exercises.toList()))
                     },
                     colors = ButtonDefaults.buttonColors(containerColor = AppTheme.primary),
                     modifier = Modifier.fillMaxWidth()
