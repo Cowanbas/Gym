@@ -1,3 +1,5 @@
+Cowanbas Applications Technology
+
 # Sobre
 Aplicativo para guardar fichas de treino e marcar a constância dos dias treinados com design minimalista. Desenvolvi esse aplicativo durante os meus dias frequentando a academia, anteriormente, eu estava utilizando o calendário, porém queria algo mais simples e dinâmico.
 
