@@ -11,7 +11,7 @@ O treino que você marca como executado no dia atual será registrado no calend�
 - *Alterar se os treinos da semana será 3x8 ou 4x12 com um clique.*
 - *Sábados e Domingos não vão mais interromper a sequência.*
 - *Treinos aos Sábados e Domingos irão contar na sequência.*
-- *Backup das fichas de treino e do calendário em si.*
+- *Função de exportar e importar as fichas de treino e o calendário.*
 - *Gráfico mostrando a evolução de cargas com o passar do tempo.*
 - *Marcos de quanto tempo você continuou na academia.*
 - *Tradução para mais línguas (Atualmente só está em inglês).* 
