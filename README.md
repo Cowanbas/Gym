@@ -2,7 +2,7 @@
 
 - *Backup das fichas de treino e do calendário em si.*
 
-- *Um gráfico mostrando a evolução de cargas com o passar do tempo.*
+- *Gráfico mostrando a evolução de cargas com o passar do tempo.*
 
 - *Marcos de quanto tempo você continuou na academia*
 
