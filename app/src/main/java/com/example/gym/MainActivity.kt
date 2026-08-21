@@ -497,6 +497,11 @@ fun RoutinesTab(
     var menuExpanded by remember { mutableStateOf(false) }
     var showCreateModal by remember { mutableStateOf(false) }
     var editingTemplate by remember { mutableStateOf<WorkoutTemplate?>(null) }
+
+    // New States for Settings and Templates tabs (Modals)
+    var showSettingsModal by remember { mutableStateOf(false) }
+    var showTemplatesModal by remember { mutableStateOf(false) }
+
     val todayShort = WEEK_DAYS.first { it.key == todayKey }.short
     val itemHeightPx = with(LocalDensity.current) { 72.dp.toPx() }
 
@@ -527,64 +532,25 @@ fun RoutinesTab(
                             onClick = { menuExpanded = true },
                             modifier = Modifier.size(36.dp)
                         ) {
-                            Icon(Icons.Default.MoreVert, contentDescription = "Workout Templates", tint = AppTheme.text)
+                            Icon(Icons.Default.MoreVert, contentDescription = "Menu", tint = AppTheme.text)
                         }
                         DropdownMenu(
                             expanded = menuExpanded,
                             onDismissRequest = { menuExpanded = false },
                             modifier = Modifier.background(AppTheme.card).border(1.dp, AppTheme.border, RoundedCornerShape(8.dp))
                         ) {
-                            templates.forEach { template ->
-                                DropdownMenuItem(
-                                    text = {
-                                        Row(
-                                            modifier = Modifier.fillMaxWidth(),
-                                            horizontalArrangement = Arrangement.SpaceBetween,
-                                            verticalAlignment = Alignment.CenterVertically
-                                        ) {
-                                            Row(
-                                                verticalAlignment = Alignment.CenterVertically,
-                                                modifier = Modifier.weight(1f)
-                                            ) {
-                                                if (template.name == activeTemplateName) {
-                                                    Icon(Icons.Default.Check, null, tint = AppTheme.text, modifier = Modifier.size(16.dp))
-                                                    Spacer(Modifier.width(6.dp))
-                                                }
-                                                Text(
-                                                    template.name,
-                                                    color = AppTheme.text,
-                                                    fontWeight = if (template.name == activeTemplateName) FontWeight.Bold else FontWeight.Normal
-                                                )
-                                            }
-                                            IconButton(
-                                                onClick = {
-                                                    menuExpanded = false
-                                                    editingTemplate = template
-                                                },
-                                                modifier = Modifier.size(30.dp)
-                                            ) {
-                                                Icon(Icons.Default.Settings, contentDescription = "Configure template", tint = AppTheme.muted, modifier = Modifier.size(16.dp))
-                                            }
-                                        }
-                                    },
-                                    onClick = {
-                                        menuExpanded = false
-                                        onSelectTemplate(template.name)
-                                    }
-                                )
-                            }
-                            HorizontalDivider(color = AppTheme.border)
                             DropdownMenuItem(
-                                text = {
-                                    Row(verticalAlignment = Alignment.CenterVertically) {
-                                        Icon(Icons.Default.Add, null, tint = AppTheme.text, modifier = Modifier.size(16.dp))
-                                        Spacer(Modifier.width(6.dp))
-                                        Text("Create", color = AppTheme.text, fontWeight = FontWeight.Bold)
-                                    }
-                                },
+                                text = { Text("Settings", color = AppTheme.text, fontWeight = FontWeight.Normal) },
                                 onClick = {
                                     menuExpanded = false
-                                    showCreateModal = true
+                                    showSettingsModal = true
+                                }
+                            )
+                            DropdownMenuItem(
+                                text = { Text("Templates", color = AppTheme.text, fontWeight = FontWeight.Normal) },
+                                onClick = {
+                                    menuExpanded = false
+                                    showTemplatesModal = true
                                 }
                             )
                         }
@@ -719,6 +685,21 @@ fun RoutinesTab(
         )
     }
 
+    if (showSettingsModal) {
+        SettingsModal(onDismiss = { showSettingsModal = false })
+    }
+
+    if (showTemplatesModal) {
+        TemplatesBottomSheetModal(
+            templates = templates,
+            activeTemplateName = activeTemplateName,
+            onDismiss = { showTemplatesModal = false },
+            onSelectTemplate = { name -> onSelectTemplate(name) },
+            onCreateClick = { showCreateModal = true },
+            onEditTemplateClick = { template -> editingTemplate = template }
+        )
+    }
+
     if (showCreateModal) {
         CreateTemplateModal(
             templates = templates,
@@ -745,6 +726,137 @@ fun RoutinesTab(
                 editingTemplate = null
             }
         )
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun SettingsModal(onDismiss: () -> Unit) {
+    ModalBottomSheet(onDismissRequest = onDismiss, containerColor = AppTheme.card) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .fillMaxHeight(0.6f)
+                .padding(16.dp)
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text("Configurações", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = AppTheme.text)
+                IconButton(onClick = onDismiss) {
+                    Icon(Icons.Default.Close, "Close", tint = AppTheme.muted)
+                }
+            }
+            Spacer(Modifier.height(24.dp))
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(16.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                // Aba em branco por enquanto
+                Text("", color = AppTheme.muted)
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun TemplatesBottomSheetModal(
+    templates: List<WorkoutTemplate>,
+    activeTemplateName: String,
+    onDismiss: () -> Unit,
+    onSelectTemplate: (String) -> Unit,
+    onCreateClick: () -> Unit,
+    onEditTemplateClick: (WorkoutTemplate) -> Unit
+) {
+    ModalBottomSheet(onDismissRequest = onDismiss, containerColor = AppTheme.card) {
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxWidth()
+                .fillMaxHeight(0.7f)
+                .padding(horizontal = 16.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            item {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text("Workout templates", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = AppTheme.text)
+                    IconButton(onClick = onDismiss) {
+                        Icon(Icons.Default.Close, "Close", tint = AppTheme.muted)
+                    }
+                }
+                Spacer(Modifier.height(4.dp))
+            }
+
+            items(templates) { template ->
+                Card(
+                    colors = CardDefaults.cardColors(containerColor = AppTheme.hover),
+                    shape = RoundedCornerShape(8.dp),
+                    border = BorderStroke(1.dp, AppTheme.border),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable {
+                                onDismiss()
+                                onSelectTemplate(template.name)
+                            }
+                            .padding(12.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            if (template.name == activeTemplateName) {
+                                Icon(Icons.Default.Check, null, tint = AppTheme.text, modifier = Modifier.size(16.dp))
+                                Spacer(Modifier.width(8.dp))
+                            }
+                            Text(
+                                template.name,
+                                color = AppTheme.text,
+                                fontWeight = if (template.name == activeTemplateName) FontWeight.Bold else FontWeight.Normal
+                            )
+                        }
+                        IconButton(
+                            onClick = {
+                                onDismiss()
+                                onEditTemplateClick(template)
+                            },
+                            modifier = Modifier.size(30.dp)
+                        ) {
+                            Icon(Icons.Default.Settings, contentDescription = "Configure template", tint = AppTheme.muted, modifier = Modifier.size(16.dp))
+                        }
+                    }
+                }
+            }
+
+            item {
+                Spacer(Modifier.height(8.dp))
+                Button(
+                    onClick = {
+                        onDismiss()
+                        onCreateClick()
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = AppTheme.primary),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Icon(Icons.Default.Add, null, tint = Color.White, modifier = Modifier.size(15.dp))
+                    Spacer(Modifier.width(6.dp))
+                    Text("Create new template", color = Color.White, fontWeight = FontWeight.Bold)
+                }
+                Spacer(Modifier.height(32.dp))
+            }
+        }
     }
 }
 
@@ -850,7 +962,7 @@ fun EditTemplateModal(
                         ) {
                             Icon(Icons.Default.Delete, null, tint = AppTheme.text, modifier = Modifier.size(15.dp))
                             Spacer(Modifier.width(6.dp))
-                            Text("Delete Template", color = AppTheme.text)
+                            Text("Delete", color = AppTheme.text)
                         }
                     }
                     Button(
@@ -868,7 +980,7 @@ fun EditTemplateModal(
                     ) {
                         Icon(Icons.Default.Check, null, tint = Color.White, modifier = Modifier.size(15.dp))
                         Spacer(Modifier.width(6.dp))
-                        Text("Save Template", color = Color.White, fontWeight = FontWeight.Bold)
+                        Text("Save", color = Color.White, fontWeight = FontWeight.Bold)
                     }
                 }
                 Spacer(Modifier.height(32.dp))
