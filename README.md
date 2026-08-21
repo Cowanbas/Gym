@@ -12,7 +12,7 @@ O treino que você marca como executado no dia atual será registrado no calend�
 - *Sábados e Domingos não vão mais interromper a sequência.*
 - *Treinos aos Sábados e Domingos irão contar na sequência.*
 - *Função de exportar e importar as fichas de treino e o calendário.*
-- *Gráfico mostrando a evolução de cargas com o passar do tempo.*
+- *Gráfico mostrando a progressão de cargas com o passar do tempo.*
 - *Marcos de quanto tempo você continuou na academia.*
 - *Tradução para mais línguas (Atualmente só está em inglês).* 
 - *Nova aba com um cronômetro para marcar o tempo de descanso.*
