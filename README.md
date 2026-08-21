@@ -1,3 +1,6 @@
+# Sobre
+Aplicativo para guardar fichas de treino e marcar quantos dias foram treinados, desenvolvi esse aplicativo
+
 # Features que serão adicionadas (se o meu tempo livre permitir)
 
 - *Ícone para o aplicativo.*
@@ -6,6 +9,8 @@
 - *Marcos de quanto tempo você continuou na academia*
 - *Tradução para mais línguas (Atualmente só está em inglês).* 
 - *Nova aba com um cronometro para marcar o tempo de descanso.*
+- *Função de copiar treinos de outras fichas para ficha atual.*
+- *Função de copiar uma ficha para uma nova* 
 
 # Supostas próximas correções
 
@@ -15,6 +20,7 @@
 - *Agrupamento das fichas na seleção do calendário.*
 - *Quantidade de séries e repetições começar zerados.*
 - *Otimização do código para deixar ele mais leve ainda*
+
 
 # Fotos
 
