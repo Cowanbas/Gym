@@ -5,7 +5,7 @@
 - *Gráfico mostrando a evolução de cargas com o passar do tempo.*
 - *Marcos de quanto tempo você continuou na academia*
 - *Tradução para mais línguas (Atualmente só está em inglês).* 
-- *Nova aba com um cronometro para o tempo de descanso.*
+- *Nova aba com um cronometro para marcar o tempo de descanso.*
 
 # Supostas próximas correções
 
