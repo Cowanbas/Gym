@@ -28,7 +28,7 @@ O intuito do aplicativo é ser de código livre para que qualquer pessoa possa a
 
 - *Correções ortográficas.*
 - *Correção do tamanho dos textos nas caixas de botões.*
-- *Alteração na marcação da aba das fichas, remover o check e também o expandir no nome invés disso marcar em volta como na marcação do dia atual da semana).*
+- *Alteração na marcação da aba das fichas, remover o check e também o expandir no nome invés disso marcar em volta como na marcação do dia atual da semana) se basear na aba do clock colocando assim Settings depois as opções de fichas.*
 - *Correção dos textos na aba das fichas.*
 - *Iniciais maiusculas em todos as caixas de mensagem.* 
 - *Agrupamento das fichas na seleção do calendário.*
