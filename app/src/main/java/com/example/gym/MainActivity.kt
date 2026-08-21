@@ -756,7 +756,6 @@ fun SettingsModal(onDismiss: () -> Unit) {
                     .padding(16.dp),
                 contentAlignment = Alignment.Center
             ) {
-                // Aba em branco por enquanto
                 Text("", color = AppTheme.muted)
             }
         }
@@ -1453,10 +1452,24 @@ fun ConstancyTab(
         derivedStateOf {
             var count = 0
             var date = LocalDate.now()
-            if (!history.containsKey(fmt(date))) date = date.minusDays(1)
-            while (history.containsKey(fmt(date))) {
-                count++
+            if (!history.containsKey(fmt(date))) {
                 date = date.minusDays(1)
+            }
+            while (true) {
+                val dayValue = date.dayOfWeek.value
+                val isWeekend = dayValue == 6 || dayValue == 7
+                val hasWorkout = history.containsKey(fmt(date))
+
+                if (hasWorkout) {
+                    count++
+                    date = date.minusDays(1)
+                } else {
+                    if (isWeekend) {
+                        date = date.minusDays(1)
+                    } else {
+                        break
+                    }
+                }
             }
             count
         }
