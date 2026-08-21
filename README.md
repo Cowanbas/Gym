@@ -16,3 +16,11 @@
 # Supostas próximas correções.
 
 - *Correção do tamanho dos textos nas caixas de botões*
+
+# Fotos
+
+<img width="816" height="1600" alt="image" src="https://github.com/user-attachments/assets/b0e40d3b-3760-4efe-9138-b0fa88ecfcae" />
+
+<img width="816" height="1600" alt="image" src="https://github.com/user-attachments/assets/3c1cb293-7606-4975-906e-fcf554074b1b" />
+
+<img width="816" height="1600" alt="image" src="https://github.com/user-attachments/assets/ab58d2d9-c23c-493f-bc25-b81739182227" />
