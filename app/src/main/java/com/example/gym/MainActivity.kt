@@ -854,7 +854,7 @@ fun SettingsModal(onDismiss: () -> Unit) {
                     Spacer(Modifier.width(12.dp))
                     Column(modifier = Modifier.weight(1f)) {
                         Text("Export Settings", fontWeight = FontWeight.Bold, fontSize = 13.sp, color = AppTheme.text)
-                        Text("Save routines, templates, and history to a file", fontSize = 11.sp, color = AppTheme.muted)
+                        Text("Save routines, templates, and history.", fontSize = 11.sp, color = AppTheme.muted)
                     }
                     Icon(Icons.Default.ChevronRight, null, tint = AppTheme.muted, modifier = Modifier.size(16.dp))
                 }
@@ -876,7 +876,7 @@ fun SettingsModal(onDismiss: () -> Unit) {
                     Spacer(Modifier.width(12.dp))
                     Column(modifier = Modifier.weight(1f)) {
                         Text("Import Settings", fontWeight = FontWeight.Bold, fontSize = 13.sp, color = AppTheme.text)
-                        Text("Load routines, templates, and history from a file", fontSize = 11.sp, color = AppTheme.muted)
+                        Text("Load routines, templates, and history.", fontSize = 11.sp, color = AppTheme.muted)
                     }
                     Icon(Icons.Default.ChevronRight, null, tint = AppTheme.muted, modifier = Modifier.size(16.dp))
                 }
@@ -1012,8 +1012,9 @@ fun CopyTemplateModal(
     var selectedTemplate by remember { mutableStateOf<WorkoutTemplate?>(null) }
     var newName by remember { mutableStateOf("") }
     var errorMessage by remember { mutableStateOf<String?>(null) }
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
-    ModalBottomSheet(onDismissRequest = onDismiss, containerColor = AppTheme.card) {
+    ModalBottomSheet(sheetState = sheetState, onDismissRequest = onDismiss, containerColor = AppTheme.card) {
         LazyColumn(
             modifier = Modifier
                 .fillMaxWidth()
@@ -1152,8 +1153,9 @@ fun EditTemplateModal(
     }
     var editingDayKey by remember { mutableStateOf<String?>(null) }
     var showDeleteConfirm by remember { mutableStateOf(false) }
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
-    ModalBottomSheet(onDismissRequest = onDismiss, containerColor = AppTheme.card) {
+    ModalBottomSheet(sheetState = sheetState, onDismissRequest = onDismiss, containerColor = AppTheme.card) {
         LazyColumn(
             modifier = Modifier
                 .fillMaxWidth()
@@ -1312,8 +1314,9 @@ fun CreateTemplateModal(
         }
     }
     var editingDayKey by remember { mutableStateOf<String?>(null) }
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
-    ModalBottomSheet(onDismissRequest = onDismiss, containerColor = AppTheme.card) {
+    ModalBottomSheet(sheetState = sheetState, onDismissRequest = onDismiss, containerColor = AppTheme.card) {
         LazyColumn(
             modifier = Modifier
                 .fillMaxWidth()
@@ -1597,8 +1600,9 @@ fun RoutineEditModal(
 ) {
     var title by remember { mutableStateOf(routine.title) }
     val exercises = remember { routine.exercises.toMutableStateList() }
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
-    ModalBottomSheet(onDismissRequest = onDismiss, containerColor = AppTheme.card) {
+    ModalBottomSheet(sheetState = sheetState, onDismissRequest = onDismiss, containerColor = AppTheme.card) {
         LazyColumn(
             modifier = Modifier
                 .fillMaxWidth()
@@ -1935,8 +1939,9 @@ fun RoutinePickerBottomSheet(
     val date = LocalDate.parse(dateKey, DATE_FMT)
     val defaultKey = routineKeyForDate(date)
     val defaultRoutine = currentRoutines[defaultKey]
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
-    ModalBottomSheet(onDismissRequest = onDismiss, containerColor = AppTheme.card) {
+    ModalBottomSheet(sheetState = sheetState, onDismissRequest = onDismiss, containerColor = AppTheme.card) {
         LazyColumn(
             modifier = Modifier
                 .fillMaxWidth()
@@ -2348,8 +2353,9 @@ fun HistoryEditModal(
 ) {
     var title by remember { mutableStateOf(item.routineTitle) }
     val exercises = remember { item.exercises.toMutableStateList() }
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
-    ModalBottomSheet(onDismissRequest = onDismiss, containerColor = AppTheme.card) {
+    ModalBottomSheet(sheetState = sheetState, onDismissRequest = onDismiss, containerColor = AppTheme.card) {
         LazyColumn(
             modifier = Modifier
                 .fillMaxWidth()
