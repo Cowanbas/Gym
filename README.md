@@ -45,4 +45,4 @@ O treino que você marca como executado no dia atual será registrado no calend�
 
 
 
-*Uma distribuição de: Cowanbas Applications Technology*
+*Sua ficha sua rotina sua disciplina sua liberdade!*
