@@ -1,4 +1,4 @@
-# Simples aplicativo para academia.
+# GYM e um Simples aplicativo para academia.
 
 
 Features que serão adicionadas (se o meu tempo livre permitir)
