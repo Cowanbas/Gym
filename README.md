@@ -14,6 +14,7 @@
 - *Iniciais maíusculas em todos as caixas de mensagem.* 
 - *Agrupamento das fichas na seleção do calendário.*
 - *Quantidade de séries e repetições começar zerados.*
+- *Otimização do código para deixar ele mais leve ainda*
 
 # Fotos
 
