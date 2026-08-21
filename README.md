@@ -8,6 +8,8 @@ O treino que você marca como executado no dia atual será registrado no calend�
 # Features que serão adicionadas (se o meu tempo livre permitir)
 
 - *Ícone para o aplicativo.*
+- *Sábados e Domingos não vão mais interromper a sequência.*
+- *Treinos aos Sábados e Domingos irão contar na sequência.*
 - *Backup das fichas de treino e do calendário em si.*
 - *Gráfico mostrando a evolução de cargas com o passar do tempo.*
 - *Marcos de quanto tempo você continuou na academia*
@@ -21,7 +23,7 @@ O treino que você marca como executado no dia atual será registrado no calend�
 - *Correções ortográficas.*
 - *Correção do tamanho dos textos nas caixas de botões.*
 - *Correção dos textos na aba das fichas.*
-- *Iniciais maíusculas em todos as caixas de mensagem.* 
+- *Iniciais maiusculas em todos as caixas de mensagem.* 
 - *Agrupamento das fichas na seleção do calendário.*
 - *Quantidade de séries e repetições começar zerados.*
 - *Otimização do código para deixar ele mais leve ainda*
