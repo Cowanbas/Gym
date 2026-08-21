@@ -16,7 +16,7 @@
 # Supostas próximas correções.
 
 - *Correção do tamanho dos textos nas caixas de botões.*
-- 
+- *Correção dos textos na aba das fichas.*
 - *Iniciais maíusculas em todos as caixas de mensagem.* 
 
 # Fotos
