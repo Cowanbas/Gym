@@ -23,6 +23,7 @@ O treino que você marca como executado no dia atual será registrado no calend�
 
 - *Correções ortográficas.*
 - *Correção do tamanho dos textos nas caixas de botões.*
+- *Alteração na marcação da aba das fichas (No caso não vai mais expandir o nome e sim marcar em volta como na marcação dos dias da semana).*
 - *Correção dos textos na aba das fichas.*
 - *Iniciais maiusculas em todos as caixas de mensagem.* 
 - *Agrupamento das fichas na seleção do calendário.*
