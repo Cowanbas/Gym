@@ -8,7 +8,7 @@
 
 - *Ícone para o aplicativo.*
 
-- *Tradução para mais línguas (Atualmente só está em inglês.* 
+- *Tradução para mais línguas (Atualmente só está em inglês).* 
 
 - *Aba de cronometro para cronometrar o tempo de descanso*
 
