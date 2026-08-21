@@ -15,7 +15,7 @@ O treino que você marca como executado no dia atual será registrado no calend�
 - *Gráfico mostrando a evolução de cargas com o passar do tempo.*
 - *Marcos de quanto tempo você continuou na academia.*
 - *Tradução para mais línguas (Atualmente só está em inglês).* 
-- *Nova aba com um cronometro para marcar o tempo de descanso.*
+- *Nova aba com um cronômetro para marcar o tempo de descanso.*
 - *Função de copiar treinos de outras fichas para ficha atual.*
 - *Função de copiar uma ficha para uma nova.* 
 
