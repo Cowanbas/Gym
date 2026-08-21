@@ -13,7 +13,7 @@ O treino que você marca como executado no dia atual será registrado no calend�
 - *Treinos aos Sábados e Domingos irão contar na sequência.*
 - *Backup das fichas de treino e do calendário em si.*
 - *Gráfico mostrando a evolução de cargas com o passar do tempo.*
-- *Marcos de quanto tempo você continuou na academia*
+- *Marcos de quanto tempo você continuou na academia.*
 - *Tradução para mais línguas (Atualmente só está em inglês).* 
 - *Nova aba com um cronometro para marcar o tempo de descanso.*
 - *Função de copiar treinos de outras fichas para ficha atual.*
@@ -27,7 +27,7 @@ O treino que você marca como executado no dia atual será registrado no calend�
 - *Iniciais maiusculas em todos as caixas de mensagem.* 
 - *Agrupamento das fichas na seleção do calendário.*
 - *Quantidade de séries e repetições irão começar zerados.*
-- *Otimização do código para deixar ele mais leve ainda*
+- *Otimização do código para deixar ele mais leve ainda.*
 
 
 # Fotos
