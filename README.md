@@ -1,9 +1,9 @@
 # Sobre
-Aplicativo para guardar fichas de treino e marcar a constância dos dias treinados, desenvolvi esse aplicativo durante meus dias indo para academia, anteriormente estava utilizando o calendário porém queria algo mais simples e dinâmico.
+Aplicativo para guardar fichas de treino e marcar a constância dos dias treinados. Desenvolvi esse aplicativo durante os meus dias frequentando a academia; anteriormente, eu estava utilizando o calendário, porém queria algo mais simples e dinâmico.
 
-O aplicativo inclui funções de criar fichas de treinos (Com os treinos de sua escolha.), inclui algumas funções que achei úteis como mudar o treino para o próximo dia assim podendo alterar o treino do dia de uma forma muito simples.
+O aplicativo inclui a função de criar fichas de treino (com os exercícios de sua escolha) e recursos que achei úteis, como mudar o treino para o próximo dia, permitindo alterar a programação de forma muito simples.
 
-O treino que você marca como executado no dia atual sera registrado no calendário, o treino do dia será marcado e so poderá ser alterado na aba do calendário, um exemplo e se no treino de quinta você marca que foi executado com a ficha A e depois alterar para a ficha B que os treinos são outros mesmo com essa alteração no calendário ficará registrado o da ficha A que você marcou.
+O treino que você marca como executado no dia atual será registrado no calendário. O treino do dia será marcado e só poderá ser alterado na aba do calendário. Um exemplo é se, no treino de quinta-feira, você marcar que foi executado com a ficha A e depois alterar para a ficha B (cujos treinos são outros): mesmo com essa alteração, no calendário ficará registrado o da ficha A que você marcou originalmente.
 
 # Features que serão adicionadas (se o meu tempo livre permitir)
 
