@@ -72,12 +72,13 @@ class MainActivity : ComponentActivity() {
 
 // --- CUSTOM THEME ---
 object AppTheme {
-    val bg = Color(0xFF121212)
-    val card = Color(0xFF121212)
+    val bg = Color(0xFF161616)
+    val card = Color(0xFF161616)
     val border = Color(0xFF2B2B2B)
-    val hover = Color(0xFF1E1E1E)
+    val hover = Color(0xFF222222)
     val text = Color(0xFFFFFFFF)
     val muted = Color(0xFF9E9E9E)
+    val primary = Color(0xFF757575)
 }
 
 @Composable
@@ -86,7 +87,7 @@ fun GymTheme(content: @Composable () -> Unit) {
         colorScheme = darkColorScheme(
             background = AppTheme.bg,
             surface = AppTheme.card,
-            primary = AppTheme.text,
+            primary = AppTheme.primary,
             onBackground = AppTheme.text,
             onSurface = AppTheme.text
         ),
@@ -370,7 +371,7 @@ fun MainHomeScreen() {
         Box(modifier = Modifier.fillMaxSize().padding(padding)) {
             if (!loaded) {
                 Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    CircularProgressIndicator(color = AppTheme.text)
+                    CircularProgressIndicator(color = AppTheme.primary)
                 }
             } else {
                 HorizontalPager(
@@ -605,7 +606,7 @@ fun RoutinesTab(
                 shape = RoundedCornerShape(10.dp),
                 border = BorderStroke(
                     width = if (isToday) 1.5.dp else 1.dp,
-                    color = if (isToday) AppTheme.text.copy(alpha = 0.6f) else AppTheme.border
+                    color = if (isToday) AppTheme.primary.copy(alpha = 0.8f) else AppTheme.border
                 ),
                 modifier = Modifier
                     .fillMaxWidth()
@@ -623,7 +624,7 @@ fun RoutinesTab(
                         modifier = Modifier
                             .size(40.dp)
                             .background(
-                                color = if (isToday) AppTheme.text else AppTheme.hover,
+                                color = if (isToday) AppTheme.primary else AppTheme.hover,
                                 shape = RoundedCornerShape(8.dp)
                             )
                             .then(if (!isToday) Modifier.border(1.dp, AppTheme.border, RoundedCornerShape(8.dp)) else Modifier),
@@ -633,7 +634,7 @@ fun RoutinesTab(
                             day.short.uppercase(),
                             fontSize = 11.sp,
                             fontWeight = FontWeight.Bold,
-                            color = if (isToday) Color.Black else AppTheme.muted
+                            color = Color.White
                         )
                     }
                     Spacer(Modifier.width(14.dp))
@@ -659,7 +660,7 @@ fun RoutinesTab(
                         )
                     }
                     if (isDoneToday) {
-                        Icon(Icons.Default.CheckCircle, null, tint = AppTheme.text, modifier = Modifier.size(18.dp))
+                        Icon(Icons.Default.CheckCircle, null, tint = AppTheme.primary, modifier = Modifier.size(18.dp))
                         Spacer(Modifier.width(6.dp))
                     }
 
@@ -798,9 +799,9 @@ fun EditTemplateModal(
                     label = { Text("Template Name", color = AppTheme.muted) },
                     textStyle = TextStyle(fontSize = 14.sp, color = AppTheme.text),
                     colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = AppTheme.text,
+                        focusedBorderColor = AppTheme.primary,
                         unfocusedBorderColor = AppTheme.border,
-                        cursorColor = AppTheme.text
+                        cursorColor = AppTheme.primary
                     )
                 )
                 if (errorMessage != null) {
@@ -862,12 +863,12 @@ fun EditTemplateModal(
                                 onSave(WorkoutTemplate(name, routinesMap.toMap()))
                             }
                         },
-                        colors = ButtonDefaults.buttonColors(containerColor = AppTheme.text),
+                        colors = ButtonDefaults.buttonColors(containerColor = AppTheme.primary),
                         modifier = Modifier.weight(1f)
                     ) {
-                        Icon(Icons.Default.Check, null, tint = Color.Black, modifier = Modifier.size(15.dp))
+                        Icon(Icons.Default.Check, null, tint = Color.White, modifier = Modifier.size(15.dp))
                         Spacer(Modifier.width(6.dp))
-                        Text("Save Template", color = Color.Black, fontWeight = FontWeight.Bold)
+                        Text("Save Template", color = Color.White, fontWeight = FontWeight.Bold)
                     }
                 }
                 Spacer(Modifier.height(32.dp))
@@ -958,9 +959,9 @@ fun CreateTemplateModal(
                     label = { Text("Template Name (e.g., Template C)", color = AppTheme.muted) },
                     textStyle = TextStyle(fontSize = 14.sp, color = AppTheme.text),
                     colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = AppTheme.text,
+                        focusedBorderColor = AppTheme.primary,
                         unfocusedBorderColor = AppTheme.border,
-                        cursorColor = AppTheme.text
+                        cursorColor = AppTheme.primary
                     )
                 )
                 if (errorMessage != null) {
@@ -1009,12 +1010,12 @@ fun CreateTemplateModal(
                             onSave(name, routinesMap.toMap())
                         }
                     },
-                    colors = ButtonDefaults.buttonColors(containerColor = AppTheme.text),
+                    colors = ButtonDefaults.buttonColors(containerColor = AppTheme.primary),
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    Icon(Icons.Default.Check, null, tint = Color.Black, modifier = Modifier.size(15.dp))
+                    Icon(Icons.Default.Check, null, tint = Color.White, modifier = Modifier.size(15.dp))
                     Spacer(Modifier.width(6.dp))
-                    Text("Save and Apply Template", color = Color.Black, fontWeight = FontWeight.Bold)
+                    Text("Save and Apply Template", color = Color.White, fontWeight = FontWeight.Bold)
                 }
                 Spacer(Modifier.height(32.dp))
             }
@@ -1039,7 +1040,6 @@ fun CreateTemplateModal(
     }
 }
 
-// CORRIGIDO: Adicionado LazyItemScope para permitir o uso de animateItem()
 @Composable
 fun LazyItemScope.ExerciseCardItem(
     exercise: Exercise,
@@ -1081,9 +1081,9 @@ fun LazyItemScope.ExerciseCardItem(
                         textStyle = TextStyle(fontSize = 12.sp, fontWeight = FontWeight.Bold, color = AppTheme.text),
                         keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
                         colors = OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor = AppTheme.text,
+                            focusedBorderColor = AppTheme.primary,
                             unfocusedBorderColor = AppTheme.border,
-                            cursorColor = AppTheme.text
+                            cursorColor = AppTheme.primary
                         )
                     )
                 } else {
@@ -1192,9 +1192,9 @@ fun NumberInputField(
             ),
             textStyle = TextStyle(fontSize = 12.sp, color = AppTheme.text, textAlign = TextAlign.Center),
             colors = OutlinedTextFieldDefaults.colors(
-                focusedBorderColor = AppTheme.text,
+                focusedBorderColor = AppTheme.primary,
                 unfocusedBorderColor = AppTheme.border,
-                cursorColor = AppTheme.text
+                cursorColor = AppTheme.primary
             ),
             modifier = Modifier.fillMaxWidth()
         )
@@ -1232,9 +1232,9 @@ fun RoutineEditModal(
                         textStyle = TextStyle(fontSize = 16.sp, fontWeight = FontWeight.Bold, color = AppTheme.text),
                         keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
                         colors = OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor = AppTheme.text,
+                            focusedBorderColor = AppTheme.primary,
                             unfocusedBorderColor = AppTheme.border,
-                            cursorColor = AppTheme.text
+                            cursorColor = AppTheme.primary
                         )
                     )
                     IconButton(onClick = onDismiss) {
@@ -1304,12 +1304,12 @@ fun RoutineEditModal(
                     if (isToday) {
                         Button(
                             onClick = { onComplete(Routine(title.ifBlank { "( insert )" }, exercises.toList())) },
-                            colors = ButtonDefaults.buttonColors(containerColor = AppTheme.text),
+                            colors = ButtonDefaults.buttonColors(containerColor = AppTheme.primary),
                             modifier = Modifier.weight(1f)
                         ) {
-                            Icon(Icons.Default.Check, null, tint = Color.Black, modifier = Modifier.size(15.dp))
+                            Icon(Icons.Default.Check, null, tint = Color.White, modifier = Modifier.size(15.dp))
                             Spacer(Modifier.width(6.dp))
-                            Text("Finish", color = Color.Black, fontWeight = FontWeight.Bold)
+                            Text("Finish", color = Color.White, fontWeight = FontWeight.Bold)
                         }
                     }
                 }
@@ -1704,7 +1704,7 @@ fun HeatmapGrid(history: Map<String, WorkoutHistory>) {
                             modifier = Modifier
                                 .size(10.dp)
                                 .background(
-                                    if (history.containsKey(fmt(date))) AppTheme.text else AppTheme.hover,
+                                    if (history.containsKey(fmt(date))) AppTheme.primary else AppTheme.hover,
                                     RoundedCornerShape(2.dp)
                                 )
                         )
@@ -1778,7 +1778,7 @@ fun WeeklyBarChart(history: Map<String, WorkoutHistory>, monthlyRef: YearMonth) 
                             .width(22.dp)
                             .height((55 * heightPct).dp)
                             .background(
-                                if (isCurrent) AppTheme.text else AppTheme.muted.copy(alpha = 0.4f),
+                                if (isCurrent) AppTheme.primary else AppTheme.muted.copy(alpha = 0.4f),
                                 RoundedCornerShape(4.dp)
                             )
                     )
@@ -1833,7 +1833,7 @@ fun CalendarGrid(
                                 .weight(1f)
                                 .aspectRatio(1f)
                                 .padding(2.dp)
-                                .background(if (hasWorkout) AppTheme.text else AppTheme.hover, CircleShape)
+                                .background(if (hasWorkout) AppTheme.primary else AppTheme.hover, CircleShape)
                                 .then(
                                     when {
                                         isSelected -> Modifier.border(2.dp, AppTheme.muted, CircleShape)
@@ -1845,7 +1845,7 @@ fun CalendarGrid(
                             contentAlignment = Alignment.Center
                         ) {
                             Text("$dayNum", fontSize = 11.sp, fontWeight = FontWeight.Bold,
-                                color = if (hasWorkout) Color.Black else AppTheme.text)
+                                color = Color.White)
                         }
                     } else {
                         Spacer(Modifier.weight(1f).aspectRatio(1f))
@@ -1890,12 +1890,12 @@ fun DayDetailCard(
                 Spacer(Modifier.height(10.dp))
                 Button(
                     onClick = onAdd,
-                    colors = ButtonDefaults.buttonColors(containerColor = AppTheme.text),
+                    colors = ButtonDefaults.buttonColors(containerColor = AppTheme.primary),
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    Icon(Icons.Default.Add, null, tint = Color.Black, modifier = Modifier.size(15.dp))
+                    Icon(Icons.Default.Add, null, tint = Color.White, modifier = Modifier.size(15.dp))
                     Spacer(Modifier.width(6.dp))
-                    Text("Add workout on this day", color = Color.Black, fontWeight = FontWeight.Bold)
+                    Text("Add workout on this day", color = Color.White, fontWeight = FontWeight.Bold)
                 }
             } else {
                 Text(historyItem.routineTitle, fontWeight = FontWeight.Bold, fontSize = 14.sp, color = AppTheme.text)
@@ -1971,9 +1971,9 @@ fun HistoryEditModal(
                         textStyle = TextStyle(fontSize = 16.sp, fontWeight = FontWeight.Bold, color = AppTheme.text),
                         keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
                         colors = OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor = AppTheme.text,
+                            focusedBorderColor = AppTheme.primary,
                             unfocusedBorderColor = AppTheme.border,
-                            cursorColor = AppTheme.text
+                            cursorColor = AppTheme.primary
                         )
                     )
                     IconButton(onClick = onDismiss) {
@@ -2025,12 +2025,12 @@ fun HistoryEditModal(
                     onClick = {
                         onSave(item.copy(routineTitle = title.ifBlank { "( insert )" }, exercises = exercises.toList()))
                     },
-                    colors = ButtonDefaults.buttonColors(containerColor = AppTheme.text),
+                    colors = ButtonDefaults.buttonColors(containerColor = AppTheme.primary),
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    Icon(Icons.Default.Save, null, tint = Color.Black, modifier = Modifier.size(15.dp))
+                    Icon(Icons.Default.Save, null, tint = Color.White, modifier = Modifier.size(15.dp))
                     Spacer(Modifier.width(6.dp))
-                    Text("Save record", color = Color.Black, fontWeight = FontWeight.Bold)
+                    Text("Save record", color = Color.White, fontWeight = FontWeight.Bold)
                 }
                 Spacer(Modifier.height(32.dp))
             }
