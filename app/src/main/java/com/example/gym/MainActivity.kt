@@ -746,6 +746,7 @@ fun RoutinesTab(
 @Composable
 fun SettingsModal(onDismiss: () -> Unit) {
     val context = LocalContext.current
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
     val exportLauncher = androidx.activity.compose.rememberLauncherForActivityResult(
         contract = androidx.activity.result.contract.ActivityResultContracts.CreateDocument("application/json")
@@ -812,7 +813,11 @@ fun SettingsModal(onDismiss: () -> Unit) {
         }
     }
 
-    ModalBottomSheet(onDismissRequest = onDismiss, containerColor = AppTheme.card) {
+    ModalBottomSheet(
+        sheetState = sheetState,
+        onDismissRequest = onDismiss,
+        containerColor = AppTheme.card
+    ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -891,7 +896,13 @@ fun TemplatesBottomSheetModal(
     onCopyClick: () -> Unit,
     onEditTemplateClick: (WorkoutTemplate) -> Unit
 ) {
-    ModalBottomSheet(onDismissRequest = onDismiss, containerColor = AppTheme.card) {
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+
+    ModalBottomSheet(
+        sheetState = sheetState,
+        onDismissRequest = onDismiss,
+        containerColor = AppTheme.card
+    ) {
         LazyColumn(
             modifier = Modifier
                 .fillMaxWidth()
