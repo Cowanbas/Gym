@@ -9,6 +9,7 @@ O treino que você marca como executado no dia atual será registrado no calend�
 
 - *Ícone para o aplicativo.*
 - *Aba de configurações.*
+- *Função de escolher quais abas irão aparecer nas configurações.*
 - *Adicionar licença termos e uso.*
 - *Alterar se os treinos da semana será 3x8 ou 4x12 com um clique.*
 - *Sábados e Domingos não vão mais interromper a sequência.*
