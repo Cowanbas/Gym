@@ -496,6 +496,7 @@ fun RoutinesTab(
     var editingKey by remember { mutableStateOf<String?>(null) }
     var menuExpanded by remember { mutableStateOf(false) }
     var showCreateModal by remember { mutableStateOf(false) }
+    var showCopyModal by remember { mutableStateOf(false) }
     var editingTemplate by remember { mutableStateOf<WorkoutTemplate?>(null) }
 
     // New States for Settings and Templates tabs (Modals)
@@ -515,7 +516,7 @@ fun RoutinesTab(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text("Weekly Workouts", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = AppTheme.text)
+                Text("Weekly workouts", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = AppTheme.text)
 
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                     Box(
@@ -696,6 +697,7 @@ fun RoutinesTab(
             onDismiss = { showTemplatesModal = false },
             onSelectTemplate = { name -> onSelectTemplate(name) },
             onCreateClick = { showCreateModal = true },
+            onCopyClick = { showCopyModal = true },
             onEditTemplateClick = { template -> editingTemplate = template }
         )
     }
@@ -707,6 +709,17 @@ fun RoutinesTab(
             onSave = { name, newRoutines ->
                 onCreateTemplate(name, newRoutines)
                 showCreateModal = false
+            }
+        )
+    }
+
+    if (showCopyModal) {
+        CopyTemplateModal(
+            templates = templates,
+            onDismiss = { showCopyModal = false },
+            onCopy = { name, newRoutines ->
+                onCreateTemplate(name, newRoutines)
+                showCopyModal = false
             }
         )
     }
@@ -732,12 +745,80 @@ fun RoutinesTab(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsModal(onDismiss: () -> Unit) {
+    val context = LocalContext.current
+
+    val exportLauncher = androidx.activity.compose.rememberLauncherForActivityResult(
+        contract = androidx.activity.result.contract.ActivityResultContracts.CreateDocument("application/json")
+    ) { uri ->
+        uri?.let {
+            try {
+                val prefs = context.getSharedPreferences("gym_store", Context.MODE_PRIVATE)
+                val allEntries = prefs.all
+                val jsonObject = JSONObject()
+                allEntries.forEach { (key, value) ->
+                    if (value != null) {
+                        jsonObject.put(key, value)
+                    }
+                }
+                context.contentResolver.openOutputStream(uri)?.use { outputStream ->
+                    outputStream.write(jsonObject.toString().toByteArray())
+                }
+                android.widget.Toast.makeText(context, "Settings exported successfully", android.widget.Toast.LENGTH_SHORT).show()
+            } catch (e: Exception) {
+                android.widget.Toast.makeText(context, "Export failed: ${e.localizedMessage}", android.widget.Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
+    val importLauncher = androidx.activity.compose.rememberLauncherForActivityResult(
+        contract = androidx.activity.result.contract.ActivityResultContracts.OpenDocument()
+    ) { uri ->
+        uri?.let {
+            try {
+                val jsonStr = context.contentResolver.openInputStream(uri)?.use { inputStream ->
+                    inputStream.bufferedReader().use { it.readText() }
+                }
+                if (jsonStr != null) {
+                    val jsonObject = JSONObject(jsonStr)
+                    val prefs = context.getSharedPreferences("gym_store", Context.MODE_PRIVATE)
+                    val editor = prefs.edit()
+                    editor.clear()
+                    jsonObject.keys().forEach { key ->
+                        val value = jsonObject.get(key)
+                        when (value) {
+                            is String -> editor.putString(key, value)
+                            is Int -> editor.putInt(key, value)
+                            is Boolean -> editor.putBoolean(key, value)
+                            is Float -> editor.putFloat(key, value)
+                            is Long -> editor.putLong(key, value)
+                            else -> editor.putString(key, value.toString())
+                        }
+                    }
+                    editor.apply()
+                    android.widget.Toast.makeText(context, "Settings imported successfully", android.widget.Toast.LENGTH_SHORT).show()
+
+                    var ctx = context
+                    while (ctx is android.content.ContextWrapper) {
+                        if (ctx is android.app.Activity) {
+                            ctx.recreate()
+                            break
+                        }
+                        ctx = ctx.baseContext
+                    }
+                }
+            } catch (e: Exception) {
+                android.widget.Toast.makeText(context, "Import failed: ${e.localizedMessage}", android.widget.Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
     ModalBottomSheet(onDismissRequest = onDismiss, containerColor = AppTheme.card) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
                 .fillMaxHeight(0.6f)
-                .padding(16.dp)
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -749,14 +830,51 @@ fun SettingsModal(onDismiss: () -> Unit) {
                     Icon(Icons.Default.Close, "Close", tint = AppTheme.muted)
                 }
             }
-            Spacer(Modifier.height(24.dp))
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(16.dp),
-                contentAlignment = Alignment.Center
+            Spacer(Modifier.height(8.dp))
+            Text("Data Management", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = AppTheme.muted)
+
+            Card(
+                colors = CardDefaults.cardColors(containerColor = AppTheme.hover),
+                shape = RoundedCornerShape(8.dp),
+                border = BorderStroke(1.dp, AppTheme.border),
+                modifier = Modifier.fillMaxWidth().clickable {
+                    exportLauncher.launch("gym_settings_${LocalDate.now()}.json")
+                }
             ) {
-                Text("", color = AppTheme.muted)
+                Row(
+                    modifier = Modifier.padding(14.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(Icons.Default.Upload, null, tint = AppTheme.text, modifier = Modifier.size(20.dp))
+                    Spacer(Modifier.width(12.dp))
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text("Export Settings", fontWeight = FontWeight.Bold, fontSize = 13.sp, color = AppTheme.text)
+                        Text("Save routines, templates, and history to a file", fontSize = 11.sp, color = AppTheme.muted)
+                    }
+                    Icon(Icons.Default.ChevronRight, null, tint = AppTheme.muted, modifier = Modifier.size(16.dp))
+                }
+            }
+
+            Card(
+                colors = CardDefaults.cardColors(containerColor = AppTheme.hover),
+                shape = RoundedCornerShape(8.dp),
+                border = BorderStroke(1.dp, AppTheme.border),
+                modifier = Modifier.fillMaxWidth().clickable {
+                    importLauncher.launch(arrayOf("application/json", "*/*"))
+                }
+            ) {
+                Row(
+                    modifier = Modifier.padding(14.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(Icons.Default.Download, null, tint = AppTheme.text, modifier = Modifier.size(20.dp))
+                    Spacer(Modifier.width(12.dp))
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text("Import Settings", fontWeight = FontWeight.Bold, fontSize = 13.sp, color = AppTheme.text)
+                        Text("Load routines, templates, and history from a file", fontSize = 11.sp, color = AppTheme.muted)
+                    }
+                    Icon(Icons.Default.ChevronRight, null, tint = AppTheme.muted, modifier = Modifier.size(16.dp))
+                }
             }
         }
     }
@@ -770,6 +888,7 @@ fun TemplatesBottomSheetModal(
     onDismiss: () -> Unit,
     onSelectTemplate: (String) -> Unit,
     onCreateClick: () -> Unit,
+    onCopyClick: () -> Unit,
     onEditTemplateClick: (WorkoutTemplate) -> Unit
 ) {
     ModalBottomSheet(onDismissRequest = onDismiss, containerColor = AppTheme.card) {
@@ -851,10 +970,154 @@ fun TemplatesBottomSheetModal(
                 ) {
                     Icon(Icons.Default.Add, null, tint = Color.White, modifier = Modifier.size(15.dp))
                     Spacer(Modifier.width(6.dp))
-                    Text("Create new template", color = Color.White, fontWeight = FontWeight.Bold)
+                    Text("Create new", color = Color.White, fontWeight = FontWeight.Bold)
+                }
+                Spacer(Modifier.height(8.dp))
+                Button(
+                    onClick = {
+                        onDismiss()
+                        onCopyClick()
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = AppTheme.primary),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Icon(Icons.Default.ContentCopy, null, tint = Color.White, modifier = Modifier.size(15.dp))
+                    Spacer(Modifier.width(6.dp))
+                    Text("Copy existing", color = Color.White, fontWeight = FontWeight.Bold)
                 }
                 Spacer(Modifier.height(32.dp))
             }
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun CopyTemplateModal(
+    templates: List<WorkoutTemplate>,
+    onDismiss: () -> Unit,
+    onCopy: (String, Map<String, Routine>) -> Unit
+) {
+    var selectedTemplate by remember { mutableStateOf<WorkoutTemplate?>(null) }
+    var newName by remember { mutableStateOf("") }
+    var errorMessage by remember { mutableStateOf<String?>(null) }
+
+    ModalBottomSheet(onDismissRequest = onDismiss, containerColor = AppTheme.card) {
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxWidth()
+                .fillMaxHeight(0.85f)
+                .padding(horizontal = 16.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            item {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text("Copy Existing Template", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = AppTheme.text)
+                    IconButton(onClick = onDismiss) {
+                        Icon(Icons.Default.Close, "Close", tint = AppTheme.muted)
+                    }
+                }
+                Spacer(Modifier.height(6.dp))
+                if (selectedTemplate == null) {
+                    Text("Select a workout or create a template.", fontSize = 12.sp, color = AppTheme.muted)
+                }
+            }
+
+            if (selectedTemplate == null) {
+                items(templates) { template ->
+                    Card(
+                        colors = CardDefaults.cardColors(containerColor = AppTheme.hover),
+                        shape = RoundedCornerShape(8.dp),
+                        border = BorderStroke(1.dp, AppTheme.border),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable {
+                                selectedTemplate = template
+                                newName = "${template.name} (Copy)"
+                                errorMessage = null
+                            }
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(12.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(template.name, fontWeight = FontWeight.Bold, fontSize = 13.sp, color = AppTheme.text)
+                                Text("${template.routines.size} days configured", fontSize = 11.sp, color = AppTheme.muted)
+                            }
+                            Icon(Icons.Default.ChevronRight, null, tint = AppTheme.muted, modifier = Modifier.size(16.dp))
+                        }
+                    }
+                }
+            } else {
+                item {
+                    Text("Source template: ${selectedTemplate!!.name}", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = AppTheme.primary)
+                    Spacer(Modifier.height(6.dp))
+                    OutlinedTextField(
+                        value = newName,
+                        onValueChange = {
+                            newName = it
+                            errorMessage = null
+                        },
+                        modifier = Modifier.fillMaxWidth(),
+                        singleLine = true,
+                        label = { Text("New Template Name", color = AppTheme.muted) },
+                        textStyle = TextStyle(fontSize = 14.sp, color = AppTheme.text),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = AppTheme.primary,
+                            unfocusedBorderColor = AppTheme.border,
+                            cursorColor = AppTheme.primary
+                        )
+                    )
+                    if (errorMessage != null) {
+                        Spacer(Modifier.height(4.dp))
+                        Text(errorMessage!!, fontSize = 11.sp, color = Color(0xFFFF5252))
+                    }
+                    Spacer(Modifier.height(10.dp))
+                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Button(
+                            onClick = { selectedTemplate = null },
+                            colors = ButtonDefaults.buttonColors(containerColor = AppTheme.hover),
+                            border = BorderStroke(1.dp, AppTheme.border),
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            Text("Back", color = AppTheme.text)
+                        }
+                        Button(
+                            onClick = {
+                                val name = newName.trim().ifBlank { "${selectedTemplate!!.name} (Copy)" }
+                                val nameExists = templates.any { it.name.equals(name, ignoreCase = true) }
+                                if (nameExists) {
+                                    errorMessage = "A template with this name already exists."
+                                } else {
+                                    val copiedRoutines = selectedTemplate!!.routines.mapValues { (_, routine) ->
+                                        Routine(
+                                            title = routine.title,
+                                            exercises = routine.exercises.map { ex ->
+                                                ex.copy(id = System.nanoTime().toString() + "_" + ex.id)
+                                            }
+                                        )
+                                    }
+                                    onCopy(name, copiedRoutines)
+                                }
+                            },
+                            colors = ButtonDefaults.buttonColors(containerColor = AppTheme.primary),
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            Icon(Icons.Default.Check, null, tint = Color.White, modifier = Modifier.size(15.dp))
+                            Spacer(Modifier.width(6.dp))
+                            Text("Save Copy", color = Color.White, fontWeight = FontWeight.Bold)
+                        }
+                    }
+                }
+            }
+
+            item { Spacer(Modifier.height(32.dp)) }
         }
     }
 }
@@ -1053,7 +1316,7 @@ fun CreateTemplateModal(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text("Create New Template", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = AppTheme.text)
+                    Text("Create new template", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = AppTheme.text)
                     IconButton(onClick = onDismiss) {
                         Icon(Icons.Default.Close, "Close", tint = AppTheme.muted)
                     }
@@ -1067,7 +1330,7 @@ fun CreateTemplateModal(
                     },
                     modifier = Modifier.fillMaxWidth(),
                     singleLine = true,
-                    label = { Text("Template Name (e.g., Template C)", color = AppTheme.muted) },
+                    label = { Text("Template name", color = AppTheme.muted) },
                     textStyle = TextStyle(fontSize = 14.sp, color = AppTheme.text),
                     colors = OutlinedTextFieldDefaults.colors(
                         focusedBorderColor = AppTheme.primary,
@@ -1083,7 +1346,7 @@ fun CreateTemplateModal(
 
             item {
                 Spacer(Modifier.height(4.dp))
-                Text("Define the workouts for the days of the week:", fontSize = 12.sp, color = AppTheme.muted, fontWeight = FontWeight.Bold)
+                Text("Define the workouts for the days of the week.", fontSize = 12.sp, color = AppTheme.muted, fontWeight = FontWeight.Bold)
             }
 
             items(WEEK_DAYS, key = { it.key }) { day ->
@@ -1126,7 +1389,7 @@ fun CreateTemplateModal(
                 ) {
                     Icon(Icons.Default.Check, null, tint = Color.White, modifier = Modifier.size(15.dp))
                     Spacer(Modifier.width(6.dp))
-                    Text("Save and Apply Template", color = Color.White, fontWeight = FontWeight.Bold)
+                    Text("Save and apply", color = Color.White, fontWeight = FontWeight.Bold)
                 }
                 Spacer(Modifier.height(32.dp))
             }
@@ -1682,7 +1945,7 @@ fun RoutinePickerBottomSheet(
                     }
                 }
                 Spacer(Modifier.height(4.dp))
-                Text("Choose which template or option to load the workout from:", fontSize = 12.sp, color = AppTheme.muted)
+                Text("Choose a workout or create one..", fontSize = 12.sp, color = AppTheme.muted)
                 Spacer(Modifier.height(8.dp))
 
                 Card(
@@ -1724,7 +1987,7 @@ fun RoutinePickerBottomSheet(
                 Spacer(Modifier.height(12.dp))
                 HorizontalDivider(color = AppTheme.border)
                 Spacer(Modifier.height(4.dp))
-                Text("OR CHOOSE FROM ANOTHER TEMPLATE:", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = AppTheme.muted)
+                Text("Or choose a ready-made template.", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = AppTheme.muted)
             }
 
             items(templates) { template ->
