@@ -45,4 +45,4 @@ O treino que você marca como executado no dia atual será registrado no calend�
 
 
 
-*Sua ficha, sua rotina, sua disciplina, sua liberdade!*
+*Sua ficha, sua rotina, sua disciplina, sua liberdade!!*
