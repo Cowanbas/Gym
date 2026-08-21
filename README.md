@@ -10,14 +10,14 @@
 
 - *Tradução para mais línguas (Atualmente só está em inglês).* 
 
-- *Aba de cronometro para cronometrar o tempo de descanso*
+- *Aba de cronometro para cronometrar o tempo de descanso.*
 
 
 # Supostas próximas correções.
 
-- *Correção do tamanho dos textos nas caixas de botões*
+- *Correção do tamanho dos textos nas caixas de botões.*
 - 
-- *Iniciais maíusculas em todos as caixas de mensagem* 
+- *Iniciais maíusculas em todos as caixas de mensagem.* 
 
 # Fotos
 
