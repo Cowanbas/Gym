@@ -13,8 +13,8 @@ O intuito do aplicativo é ser de código livre para que qualquer pessoa possa a
 - *Aba de configurações nos três pontinhos.* ✅
 - *Função de escolher quais abas irão aparecer nas configurações e qual a posição delas.* ❌
 - *Alterar se os treinos da semana será 3x8 ou 4x12 com um clique.* ❌
-- *Sábados e Domingos não vão mais interromper a sequência.* ❌
-- *Treinos aos Sábados e Domingos irão contar na sequência.* ❌
+- *Sábados e Domingos não vão mais interromper a sequência.* ✅
+- *Treinos aos Sábados e Domingos irão contar na sequência.* ✅
 - *Função de exportar e importar as fichas de treino e o calendário.* ❌
 - *Gráfico mostrando a progressão de cargas com o passar do tempo.* ❌
 - *Marcos de quanto tempo você continuou na academia.* ❌
@@ -25,14 +25,12 @@ O intuito do aplicativo é ser de código livre para que qualquer pessoa possa a
 # Supostas próximas correções
 
 - *Corrigir opção de colocar dois números 01,02,03...* ❌
-- *Correções ortográficas.* ❌
+- *Correções ortográficas.*  ✅
 - *Correção do tamanho dos textos nas caixas de botões.* ✅
-- *Correção dos textos na aba das fichas.* ❌
-- *Iniciais maiusculas em todos as caixas de mensagem.* ❌
+- *Correção dos textos na aba das fichas.*  ✅
+- *Iniciais maiusculas em todos as caixas de mensagem.*  ✅
 - *Agrupamento das fichas na seleção do calendário.* ❌
 - *Quantidade de séries e repetições irão começar zerados.* ❌
-- *Otimização das animações de scroll.* ❌
-- *Otimização do código para deixar o app mais leve e responsivo.* ❌
 
 
 # Imagens
