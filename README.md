@@ -1,7 +1,4 @@
-# GYM e um Simples aplicativo para academia.
-
-
-Features que serão adicionadas (se o meu tempo livre permitir)
+# Features que serão adicionadas (se o meu tempo livre permitir)
 
 - *Backup das fichas de treino e do calendário em si.*
 
@@ -14,3 +11,8 @@ Features que serão adicionadas (se o meu tempo livre permitir)
 - *Tradução para mais línguas (Atualmente só está em inglês.* 
 
 - *Aba de cronometro para cronometrar o tempo de descanso dahm*
+
+
+# Supostas próximas correções.
+
+- *Correção do tamanho dos textos nas caixas de botões*
