@@ -10,7 +10,7 @@ O intuito do aplicativo é ser de código livre para que qualquer pessoa possa a
 # Features que serão adicionadas.
 
 - *Ícone para o aplicativo.*
-- *Aba de configurações.*
+- *Aba de configurações nos três pontinhos.*
 - *Função de escolher quais abas irão aparecer nas configurações e qual a posição delas.*
 - *Adicionar licença termos e uso.*
 - *Alterar se os treinos da semana será 3x8 ou 4x12 com um clique.*
