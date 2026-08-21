@@ -10,16 +10,14 @@ O intuito do aplicativo é ser de código livre para que qualquer pessoa possa a
 # Features que serão adicionadas.
 
 - *Ícone para o aplicativo.* ❌
-- *Aba de configurações nos três pontinhos.* ❌
+- *Aba de configurações nos três pontinhos.* ✅
 - *Função de escolher quais abas irão aparecer nas configurações e qual a posição delas.* ❌
-- *Adicionar licença termos e uso.* ❌
 - *Alterar se os treinos da semana será 3x8 ou 4x12 com um clique.* ❌
 - *Sábados e Domingos não vão mais interromper a sequência.* ❌
 - *Treinos aos Sábados e Domingos irão contar na sequência.* ❌
 - *Função de exportar e importar as fichas de treino e o calendário.* ❌
 - *Gráfico mostrando a progressão de cargas com o passar do tempo.* ❌
 - *Marcos de quanto tempo você continuou na academia.* ❌
-- *Tradução para mais línguas (Atualmente só está em inglês).*  ❌
 - *Nova aba com um cronômetro para marcar o tempo de descanso.* ❌
 - *Função de copiar treinos de outras fichas para ficha atual.* ❌
 - *Função de copiar uma ficha para uma nova.* ❌
@@ -28,8 +26,7 @@ O intuito do aplicativo é ser de código livre para que qualquer pessoa possa a
 
 - *Corrigir opção de colocar dois números 01,02,03...* ❌
 - *Correções ortográficas.* ❌
-- *Correção do tamanho dos textos nas caixas de botões.* ❌
-- *Alteração na marcação da aba das fichas, remover o check e também o expandir no nome invés disso marcar em volta como na marcação do dia atual da semana) se basear na aba do clock colocando assim Settings depois as opções de fichas.* ❌
+- *Correção do tamanho dos textos nas caixas de botões.* ✅
 - *Correção dos textos na aba das fichas.* ❌
 - *Iniciais maiusculas em todos as caixas de mensagem.* ❌
 - *Agrupamento das fichas na seleção do calendário.* ❌
