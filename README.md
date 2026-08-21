@@ -17,7 +17,7 @@ O treino que você marca como executado no dia atual será registrado no calend�
 - *Tradução para mais línguas (Atualmente só está em inglês).* 
 - *Nova aba com um cronometro para marcar o tempo de descanso.*
 - *Função de copiar treinos de outras fichas para ficha atual.*
-- *Função de copiar uma ficha para uma nova* 
+- *Função de copiar uma ficha para uma nova.* 
 
 # Supostas próximas correções
 
