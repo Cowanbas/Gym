@@ -8,6 +8,7 @@ O treino que você marca como executado no dia atual será registrado no calend�
 # Features que serão adicionadas (se o meu tempo livre permitir)
 
 - *Ícone para o aplicativo.*
+- *Alterar se o treino será 3x8, 4x12·
 - *Sábados e Domingos não vão mais interromper a sequência.*
 - *Treinos aos Sábados e Domingos irão contar na sequência.*
 - *Backup das fichas de treino e do calendário em si.*
