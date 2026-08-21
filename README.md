@@ -19,6 +19,7 @@
 - *Correção dos textos na aba das fichas.*
 - *Iniciais maíusculas em todos as caixas de mensagem.* 
 - *Agrupamento das fichas na seleção do calendário.*
+- *Quantidade de séries e repetições começar zerados.*
 
 # Fotos
 
