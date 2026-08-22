@@ -2310,7 +2310,9 @@ fun DayDetailCard(
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
                         Text(ex.name.ifBlank { "Exercise" }, fontSize = 11.sp, color = AppTheme.text)
-                        Text("${ex.sets}x${ex.reps} • ${trimNumber(ex.weight)}kg", fontSize = 11.sp, color = AppTheme.muted)
+                        val wStr = trimNumber(ex.weight)
+                        val formattedWeight = if (wStr.length == 1 && wStr[0].isDigit()) "0$wStr" else wStr
+                        Text("${ex.sets}x${ex.reps} • ${formattedWeight}kg", fontSize = 11.sp, color = AppTheme.muted)
                     }
                 }
                 if (historyItem.exercises.isEmpty()) {
