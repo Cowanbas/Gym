@@ -1,7 +1,7 @@
 # Sobre
 Aplicativo para guardar fichas de treino e marcar a constância dos dias treinados com design minimalista. Desenvolvi esse aplicativo durante os meus dias frequentando a academia, anteriormente, eu estava utilizando o calendário, porém queria algo mais simples e dinâmico.
 
-O aplicativo inclui a função de criar fichas de treino (com os exercícios de sua escolha) e recursos que achei úteis, como mudar o treino para o próximo dia, permitindo alterar a programação de forma muito simples.
+O aplicativo inclui a função de criar fichas de treino (com os exercícios de sua escolha) e recursos que achei úteis, como mudar o treino para o próximo dia, permitindo alterar a programação do dia de forma muito simples.
 
 O treino que você marca como executado no dia atual será registrado no calendário. O treino do dia será marcado e só poderá ser alterado na aba do calendário. Um exemplo é se, no treino de quinta-feira, você marcar que foi executado com a ficha A e depois alterar para a ficha B (cujos treinos são outros): mesmo com essa alteração, no calendário ficará registrado o da ficha A que você marcou originalmente.
 
@@ -9,6 +9,7 @@ O intuito do aplicativo é ser de código livre para que qualquer pessoa possa a
 
 # Features que serão adicionadas.
 
+- *Nova aba para dividir as repetições com pesos diferentes.* ❌
 - *Ícone para o aplicativo.* ❌
 - *Aba de configurações nos três pontinhos.* ✅
 - *Sábados e Domingos não vão mais interromper a sequência.* ✅
@@ -20,11 +21,13 @@ O intuito do aplicativo é ser de código livre para que qualquer pessoa possa a
 
 # Supostas próximas correções
 
-- *Corrigir opção de colocar dois números 01,02,03...* ❌
+- *Gráfico de constância das 16 semanas começar de baixo para cima, deixando sábado e domingo em cima sempre.* ❌
+- *Atualizar a Exportação/Importação das configurações* ❌
+- *Corrigir opção de colocar dois números 01,02,03...* ✅
 - *Correções ortográficas.*  ✅
 - *Correção do tamanho dos textos nas caixas de botões.* ✅
 - *Correção dos textos na aba das fichas.*  ✅
-- *Iniciais maiusculas em todos as caixas de mensagem.*  ✅
+- *Iniciais maiusculas em todos as caixas de mensagem.* ❌
 - *Quantidade de séries e repetições irão começar zerados.* ✅
 
 
