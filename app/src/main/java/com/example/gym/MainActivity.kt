@@ -24,6 +24,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.*
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -44,6 +45,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
+import androidx.core.content.edit
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -224,25 +226,26 @@ object Store {
     suspend fun saveRoutines(ctx: Context, routines: Map<String, Routine>) = withContext(Dispatchers.IO) {
         val obj = JSONObject()
         routines.forEach { (k, v) -> obj.put(k, v.toJson()) }
-        prefs(ctx).edit().putString(KEY_ROUTINES, obj.toString()).apply()
+        prefs(ctx).edit { putString(KEY_ROUTINES, obj.toString()) }
     }
 
     suspend fun saveTemplates(ctx: Context, templates: List<WorkoutTemplate>) = withContext(Dispatchers.IO) {
         val arr = JSONArray()
         templates.forEach { arr.put(it.toJson()) }
-        prefs(ctx).edit().putString(KEY_TEMPLATES, arr.toString()).apply()
+        prefs(ctx).edit { putString(KEY_TEMPLATES, arr.toString()) }
     }
 
     suspend fun saveActiveTemplateName(ctx: Context, name: String) = withContext(Dispatchers.IO) {
-        prefs(ctx).edit().putString(KEY_ACTIVE_TEMPLATE, name).apply()
+        prefs(ctx).edit { putString(KEY_ACTIVE_TEMPLATE, name) }
     }
 
     suspend fun saveHistory(ctx: Context, history: Map<String, WorkoutHistory>) = withContext(Dispatchers.IO) {
         val obj = JSONObject()
         history.forEach { (k, v) -> obj.put(k, v.toJson()) }
-        prefs(ctx).edit().putString(KEY_HISTORY, obj.toString()).apply()
+        prefs(ctx).edit { putString(KEY_HISTORY, obj.toString()) }
     }
 
+    @Suppress("SpellCheckingInspection")
     fun defaultRoutines(): Map<String, Routine> = mapOf(
         "monday" to Routine("Empty", emptyList()),
         "tuesday" to Routine("Empty", emptyList()),
@@ -261,10 +264,13 @@ object Store {
 
 val DATE_FMT: DateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
 fun fmt(date: LocalDate): String = date.format(DATE_FMT)
+
+@Suppress("SpellCheckingInspection")
 val DAY_KEYS = listOf("monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday")
 
 data class WeekDay(val key: String, val name: String, val short: String)
 
+@Suppress("SpellCheckingInspection")
 val WEEK_DAYS = listOf(
     WeekDay("monday", "Monday", "Mon"),
     WeekDay("tuesday", "Tuesday", "Tue"),
@@ -545,7 +551,7 @@ fun RoutinesTab(
             val isToday = day.key == todayKey
             val isDoneToday = isToday && history.containsKey(formattedToday)
 
-            var dragOffset by remember { mutableStateOf(0f) }
+            var dragOffset by remember { mutableFloatStateOf(0f) }
             var isDragging by remember { mutableStateOf(false) }
 
             Card(
@@ -762,20 +768,19 @@ fun SettingsModal(onDismiss: () -> Unit) {
                 if (jsonStr != null) {
                     val jsonObject = JSONObject(jsonStr)
                     val prefs = context.getSharedPreferences("gym_store", Context.MODE_PRIVATE)
-                    val editor = prefs.edit()
-                    editor.clear()
-                    jsonObject.keys().forEach { key ->
-                        val value = jsonObject.get(key)
-                        when (value) {
-                            is String -> editor.putString(key, value)
-                            is Int -> editor.putInt(key, value)
-                            is Boolean -> editor.putBoolean(key, value)
-                            is Float -> editor.putFloat(key, value)
-                            is Long -> editor.putLong(key, value)
-                            else -> editor.putString(key, value.toString())
+                    prefs.edit {
+                        clear()
+                        jsonObject.keys().forEach { key ->
+                            when (val value = jsonObject.get(key)) {
+                                is String -> putString(key, value)
+                                is Int -> putInt(key, value)
+                                is Boolean -> putBoolean(key, value)
+                                is Float -> putFloat(key, value)
+                                is Long -> putLong(key, value)
+                                else -> putString(key, value.toString())
+                            }
                         }
                     }
-                    editor.apply()
                     android.widget.Toast.makeText(context, "Settings imported successfully", android.widget.Toast.LENGTH_SHORT).show()
 
                     var ctx = context
@@ -1418,7 +1423,7 @@ fun LazyItemScope.ExerciseCardItem(
     onMove: (fromIndex: Int, toIndex: Int) -> Unit
 ) {
     var expanded by remember { mutableStateOf(false) }
-    var dragOffset by remember { mutableStateOf(0f) }
+    var dragOffset by remember { mutableFloatStateOf(0f) }
     var isDragging by remember { mutableStateOf(false) }
     val itemHeightPx = with(LocalDensity.current) { 56.dp.toPx() }
 
@@ -1755,7 +1760,7 @@ fun ConstancyTab(
         }
 
         item {
-            SectionCard(Icons.Default.ShowChart, "Weeks of the Month") {
+            SectionCard(Icons.AutoMirrored.Filled.ShowChart, "Weeks of the Month") {
                 Column {
                     Row(
                         modifier = Modifier.fillMaxWidth(),
