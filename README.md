@@ -21,7 +21,7 @@ O intuito do aplicativo é ser de código livre para que qualquer pessoa possa a
 
 # Supostas próximas correções
 
-- *Gráfico de constância das 16 semanas começar de baixo para cima, deixando sábado e domingo em cima sempre.* ❌
+- *Gráfico de constância das 16 semanas começar de baixo para cima, deixando sábado e domingo em cima sempre.* ✅
 - *Atualizar a Exportação/Importação das configurações* ❌
 - *Corrigir opção de colocar dois números 01,02,03...* ✅
 - *Correções ortográficas.*  ✅
