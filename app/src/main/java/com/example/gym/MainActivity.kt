@@ -70,7 +70,6 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-// --- CUSTOM THEME ---
 object AppTheme {
     val bg = Color(0xFF161616)
     val card = Color(0xFF161616)
@@ -95,7 +94,6 @@ fun GymTheme(content: @Composable () -> Unit) {
     )
 }
 
-// --- MODELS ---
 data class Exercise(
     val id: String = System.nanoTime().toString(),
     val name: String = "",
@@ -130,8 +128,7 @@ data class Routine(
     companion object {
         fun fromJson(json: JSONObject): Routine {
             val arr = json.optJSONArray("exercises")
-            val list = mutableListOf<Exercise>()
-            if (arr != null) for (i in 0 until arr.length()) list.add(Exercise.fromJson(arr.getJSONObject(i)))
+            val list = if (arr != null) List(arr.length()) { Exercise.fromJson(arr.getJSONObject(it)) } else emptyList()
             return Routine(json.optString("title", "Workout"), list)
         }
     }
@@ -152,9 +149,8 @@ data class WorkoutTemplate(
         fun fromJson(json: JSONObject): WorkoutTemplate {
             val name = json.optString("name", "Template A")
             val routinesObj = json.optJSONObject("routines") ?: JSONObject()
-            val map = mutableMapOf<String, Routine>()
-            routinesObj.keys().forEach { k ->
-                map[k] = Routine.fromJson(routinesObj.getJSONObject(k))
+            val map = buildMap {
+                routinesObj.keys().forEach { k -> put(k, Routine.fromJson(routinesObj.getJSONObject(k))) }
             }
             return WorkoutTemplate(name, map.ifEmpty { Store.defaultRoutines() })
         }
@@ -177,8 +173,7 @@ data class WorkoutHistory(
     companion object {
         fun fromJson(json: JSONObject): WorkoutHistory {
             val arr = json.optJSONArray("exercises")
-            val list = mutableListOf<Exercise>()
-            if (arr != null) for (i in 0 until arr.length()) list.add(Exercise.fromJson(arr.getJSONObject(i)))
+            val list = if (arr != null) List(arr.length()) { Exercise.fromJson(arr.getJSONObject(it)) } else emptyList()
             return WorkoutHistory(
                 date = json.optString("date", ""),
                 routineKey = json.optString("routineKey", ""),
@@ -189,7 +184,6 @@ data class WorkoutHistory(
     }
 }
 
-// --- OPTIMIZED PERSISTENCE ---
 object Store {
     private const val PREFS = "gym_store"
     private const val KEY_ROUTINES = "routines"
@@ -203,9 +197,7 @@ object Store {
         val raw = prefs(ctx).getString(KEY_ROUTINES, null) ?: return@withContext null
         runCatching {
             val obj = JSONObject(raw)
-            buildMap {
-                obj.keys().forEach { k -> put(k, Routine.fromJson(obj.getJSONObject(k))) }
-            }
+            buildMap { obj.keys().forEach { k -> put(k, Routine.fromJson(obj.getJSONObject(k))) } }
         }.getOrNull()
     }
 
@@ -213,11 +205,7 @@ object Store {
         val raw = prefs(ctx).getString(KEY_TEMPLATES, null) ?: return@withContext null
         runCatching {
             val arr = JSONArray(raw)
-            val list = mutableListOf<WorkoutTemplate>()
-            for (i in 0 until arr.length()) {
-                list.add(WorkoutTemplate.fromJson(arr.getJSONObject(i)))
-            }
-            list.ifEmpty { null }
+            List(arr.length()) { WorkoutTemplate.fromJson(arr.getJSONObject(it)) }.ifEmpty { null }
         }.getOrNull()
     }
 
@@ -229,9 +217,7 @@ object Store {
         val raw = prefs(ctx).getString(KEY_HISTORY, null) ?: return@withContext emptyMap()
         runCatching {
             val obj = JSONObject(raw)
-            buildMap {
-                obj.keys().forEach { k -> put(k, WorkoutHistory.fromJson(obj.getJSONObject(k))) }
-            }
+            buildMap { obj.keys().forEach { k -> put(k, WorkoutHistory.fromJson(obj.getJSONObject(k))) } }
         }.getOrDefault(emptyMap())
     }
 
@@ -291,7 +277,6 @@ val WEEK_DAYS = listOf(
 
 fun routineKeyForDate(date: LocalDate): String = DAY_KEYS[date.dayOfWeek.value - 1]
 
-// --- MAIN SCREEN ---
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun MainHomeScreen() {
@@ -474,9 +459,6 @@ fun MainHomeScreen() {
     }
 }
 
-// ==========================================
-// TAB 1: WEEKLY WORKOUTS
-// ==========================================
 @Composable
 fun RoutinesTab(
     routines: Map<String, Routine>,
@@ -498,8 +480,6 @@ fun RoutinesTab(
     var showCreateModal by remember { mutableStateOf(false) }
     var showCopyModal by remember { mutableStateOf(false) }
     var editingTemplate by remember { mutableStateOf<WorkoutTemplate?>(null) }
-
-    // New States for Settings and Templates tabs (Modals)
     var showSettingsModal by remember { mutableStateOf(false) }
     var showTemplatesModal by remember { mutableStateOf(false) }
 
@@ -1708,9 +1688,6 @@ fun RoutineEditModal(
     }
 }
 
-// ==========================================
-// TAB 2: CALENDAR / CONSTANCY / HISTORY
-// ==========================================
 @Composable
 fun ConstancyTab(
     history: SnapshotStateMap<String, WorkoutHistory>,
