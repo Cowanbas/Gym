@@ -11,13 +11,10 @@ O intuito do aplicativo é ser de código livre para que qualquer pessoa possa a
 
 - *Ícone para o aplicativo.* ❌
 - *Aba de configurações nos três pontinhos.* ✅
-- *Função de escolher quais abas irão aparecer nas configurações e qual a posição delas.* ❌
-- *Alterar se os treinos da semana será 3x8 ou 4x12 com um clique.* ❌
 - *Sábados e Domingos não vão mais interromper a sequência.* ✅
 - *Treinos aos Sábados e Domingos irão contar na sequência.* ✅
 - *Função de exportar e importar as fichas de treino e o calendário.* ✅
 - *Gráfico mostrando a progressão de cargas com o passar do tempo.* ❌
-- *Marcos de quanto tempo você continuou na academia.* ❌
 - *Nova aba com um cronômetro para marcar o tempo de descanso.* ❌
 - *Função de copiar uma ficha existente para uma nova.* ✅
 
