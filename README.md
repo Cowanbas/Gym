@@ -20,7 +20,7 @@ O intuito do aplicativo é ser de código livre para que qualquer pessoa possa a
 
 # Supostas próximas correções
 
-- *Corrigir opção de colocar dois números 01,02,03...* ❌
+- *Corrigir opção de colocar dois números 01,02,03...* ✅
 - *Correções ortográficas.*  ✅
 - *Correção do tamanho dos textos nas caixas de botões.* ✅
 - *Correção dos textos na aba das fichas.*  ✅
