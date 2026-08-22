@@ -9,25 +9,26 @@ O intuito do aplicativo é ser de código livre para que qualquer pessoa possa a
 
 # Features que serão adicionadas.
 
-- *Nova aba para dividir as repetições com pesos diferentes.* ❌
+
 - *Ícone para o aplicativo.* ❌
 - *Aba de configurações nos três pontinhos.* ✅
+- *Função de copiar uma ficha existente para uma nova.* ✅
+- *Nova aba para dividir as repetições com pesos diferentes.* ❌
 - *Sábados e Domingos não vão mais interromper a sequência.* ✅
 - *Treinos aos Sábados e Domingos irão contar na sequência.* ✅
 - *Função de exportar e importar as fichas de treino e o calendário.* ✅
 - *Gráfico mostrando a progressão de cargas com o passar do tempo.* ❌
 - *Nova aba com um cronômetro para marcar o tempo de descanso.* ❌
-- *Função de copiar uma ficha existente para uma nova.* ✅
 
 # Supostas próximas correções
 
-- *Gráfico de constância das 16 semanas começar de baixo para cima, deixando sábado e domingo em cima sempre.* ✅
 - *Atualizar a Exportação/Importação das configurações* ❌
+- *Gráfico de constância dcomeçar de baixo para cima.* ✅
 - *Corrigir opção de colocar dois números 01,02,03...* ✅
 - *Correções ortográficas.*  ✅
 - *Correção do tamanho dos textos nas caixas de botões.* ✅
 - *Correção dos textos na aba das fichas.*  ✅
-- *Iniciais maiusculas em todos as caixas de mensagem.* ❌
+- *Iniciais maiusculas em todos as caixas de mensagem.* ✅
 - *Quantidade de séries e repetições irão começar zerados.* ✅
 
 

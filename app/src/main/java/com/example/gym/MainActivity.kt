@@ -1073,6 +1073,7 @@ fun CopyTemplateModal(
                         singleLine = true,
                         label = { Text("New Template Name", color = AppTheme.muted) },
                         textStyle = TextStyle(fontSize = 14.sp, color = AppTheme.text),
+                        keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
                         colors = OutlinedTextFieldDefaults.colors(
                             focusedBorderColor = AppTheme.primary,
                             unfocusedBorderColor = AppTheme.border,
@@ -1178,6 +1179,7 @@ fun EditTemplateModal(
                     singleLine = true,
                     label = { Text("Template Name", color = AppTheme.muted) },
                     textStyle = TextStyle(fontSize = 14.sp, color = AppTheme.text),
+                    keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
                     colors = OutlinedTextFieldDefaults.colors(
                         focusedBorderColor = AppTheme.primary,
                         unfocusedBorderColor = AppTheme.border,
@@ -1339,6 +1341,7 @@ fun CreateTemplateModal(
                     singleLine = true,
                     label = { Text("Template name", color = AppTheme.muted) },
                     textStyle = TextStyle(fontSize = 14.sp, color = AppTheme.text),
+                    keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
                     colors = OutlinedTextFieldDefaults.colors(
                         focusedBorderColor = AppTheme.primary,
                         unfocusedBorderColor = AppTheme.border,
