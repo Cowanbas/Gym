@@ -9,7 +9,7 @@ O intuito do aplicativo é ser de código livre para que qualquer pessoa possa a
 
 # Features que serão adicionadas.
 
-- *Aba abaixo do número de séries e reps para colocar outro peso e quantas reps para fazer o gráfico de evolução de peso.* ❌
+- *Nova aba para dividir as repetições com pesos diferentes.* ❌
 - *Ícone para o aplicativo.* ❌
 - *Aba de configurações nos três pontinhos.* ✅
 - *Sábados e Domingos não vão mais interromper a sequência.* ✅
