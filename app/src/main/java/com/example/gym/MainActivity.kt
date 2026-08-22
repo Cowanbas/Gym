@@ -1558,7 +1558,7 @@ fun NumberInputField(
     }
 
     Column(modifier = modifier) {
-        Text(label, fontSize = 10.sp, color = AppTheme.muted)
+        Text(label, fontSize = 12.sp, color = AppTheme.muted)
         Spacer(Modifier.height(2.dp))
         OutlinedTextField(
             value = text,
@@ -1571,7 +1571,7 @@ fun NumberInputField(
             keyboardOptions = KeyboardOptions(
                 keyboardType = if (decimal) KeyboardType.Decimal else KeyboardType.Number
             ),
-            textStyle = TextStyle(fontSize = 12.sp, color = AppTheme.text, textAlign = TextAlign.Center),
+            textStyle = TextStyle(fontSize = 14.sp, color = AppTheme.text, textAlign = TextAlign.Center),
             colors = OutlinedTextFieldDefaults.colors(
                 focusedBorderColor = AppTheme.primary,
                 unfocusedBorderColor = AppTheme.border,
