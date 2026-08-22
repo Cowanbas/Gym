@@ -99,8 +99,8 @@ fun GymTheme(content: @Composable () -> Unit) {
 data class Exercise(
     val id: String = System.nanoTime().toString(),
     val name: String = "",
-    val sets: Int = 3,
-    val reps: Int = 10,
+    val sets: Int = 0,
+    val reps: Int = 0,
     val weight: Double = 0.0
 ) {
     fun toJson(): JSONObject = JSONObject().apply {
