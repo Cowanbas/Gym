@@ -36,11 +36,9 @@ O intuito do aplicativo é ser de código livre para que qualquer pessoa possa a
 
 <p align="center">
   <img width="30%" alt="image" src="https://github.com/user-attachments/assets/2fa6e798-28a8-4a9a-a19a-aa47d6725703" />
-  <img width="30%" alt="image" src="https://github.com/user-attachments/assets/3c1cb293-7606-4975-906e-fcf554074b1b" />
-  <img width="30%" alt="image" src="https://github.com/user-attachments/assets/ab58d2d9-c23c-493f-bc25-b81739182227" />
+  <img width="30%" alt="image" src="https://github.com/user-attachments/assets/6616a060-cc03-4159-8b68-cff004a77b97" />
+  <img width="30%" alt="image" src="https://github.com/user-attachments/assets/6c4cd6e3-98d2-404a-9ecb-cb76a91c5a14" />
 </p>
 
-
-<img width="816" height="1600" alt="image" src="https://github.com/user-attachments/assets/2fa6e798-28a8-4a9a-a19a-aa47d6725703" />
 
 *Sua ficha, sua rotina, sua disciplina, sua liberdade!!*
