@@ -1755,8 +1755,8 @@ fun ConstancyTab(
     ) {
         item {
             Row(horizontalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.fillMaxWidth()) {
-                MetricCard(Icons.Default.LocalFireDepartment, streak.toString(), "Current Streak", Modifier.weight(1f))
-                MetricCard(Icons.Default.CalendarToday, monthCount.toString(), "Monthly Workouts", Modifier.weight(1f))
+                MetricCard(Icons.Default.LocalFireDepartment, streak.toString(), "Current streak", Modifier.weight(1f))
+                MetricCard(Icons.Default.CalendarToday, monthCount.toString(), "Monthly workouts", Modifier.weight(1f))
             }
         }
 
@@ -1767,7 +1767,7 @@ fun ConstancyTab(
         }
 
         item {
-            SectionCard(Icons.AutoMirrored.Filled.ShowChart, "Weeks of the Month") {
+            SectionCard(Icons.AutoMirrored.Filled.ShowChart, "Weeks of the month") {
                 Column {
                     Row(
                         modifier = Modifier.fillMaxWidth(),
