@@ -25,7 +25,7 @@ O intuito do aplicativo é ser de código livre para que qualquer pessoa possa a
 - *Correções ortográficas.*  ✅
 - *Correção do tamanho dos textos nas caixas de botões.* ✅
 - *Correção dos textos na aba das fichas.*  ✅
-- *Iniciais maiusculas em todos as caixas de mensagem.*  ✅
+- *Iniciais maiusculas em todos as caixas de mensagem.* ❌
 - *Quantidade de séries e repetições irão começar zerados.* ✅
 
 
