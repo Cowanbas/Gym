@@ -31,6 +31,7 @@ import androidx.compose.runtime.*
 import androidx.compose.runtime.snapshots.SnapshotStateMap
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -576,9 +577,9 @@ fun RoutinesTab(
                     Box(
                         modifier = Modifier
                             .size(40.dp)
+                            .clip(RoundedCornerShape(8.dp))
                             .background(
-                                color = if (isToday) AppTheme.primary else AppTheme.hover,
-                                shape = RoundedCornerShape(8.dp)
+                                color = if (isToday) AppTheme.primary else AppTheme.hover
                             )
                             .then(if (!isToday) Modifier.border(1.dp, AppTheme.border, RoundedCornerShape(8.dp)) else Modifier),
                         contentAlignment = Alignment.Center
@@ -845,7 +846,7 @@ fun SettingsModal(onDismiss: () -> Unit) {
                     Icon(Icons.Default.Upload, null, tint = AppTheme.text, modifier = Modifier.size(20.dp))
                     Spacer(Modifier.width(12.dp))
                     Column(modifier = Modifier.weight(1f)) {
-                        Text("Export Settings", fontWeight = FontWeight.Bold, fontSize = 13.sp, color = AppTheme.text)
+                        Text("Export settings", fontWeight = FontWeight.Bold, fontSize = 13.sp, color = AppTheme.text)
                         Text("Save routines, templates, and history.", fontSize = 11.sp, color = AppTheme.muted)
                     }
                     Icon(Icons.Default.ChevronRight, null, tint = AppTheme.muted, modifier = Modifier.size(16.dp))
@@ -867,7 +868,7 @@ fun SettingsModal(onDismiss: () -> Unit) {
                     Icon(Icons.Default.Download, null, tint = AppTheme.text, modifier = Modifier.size(20.dp))
                     Spacer(Modifier.width(12.dp))
                     Column(modifier = Modifier.weight(1f)) {
-                        Text("Import Settings", fontWeight = FontWeight.Bold, fontSize = 13.sp, color = AppTheme.text)
+                        Text("Import settings", fontWeight = FontWeight.Bold, fontSize = 13.sp, color = AppTheme.text)
                         Text("Load routines, templates, and history.", fontSize = 11.sp, color = AppTheme.muted)
                     }
                     Icon(Icons.Default.ChevronRight, null, tint = AppTheme.muted, modifier = Modifier.size(16.dp))
@@ -2255,7 +2256,8 @@ fun CalendarGrid(
                                 .weight(1f)
                                 .aspectRatio(1f)
                                 .padding(2.dp)
-                                .background(if (hasWorkout) AppTheme.primary else AppTheme.hover, CircleShape)
+                                .clip(CircleShape)
+                                .background(if (hasWorkout) AppTheme.primary else AppTheme.hover)
                                 .then(
                                     when {
                                         isSelected -> Modifier.border(2.dp, AppTheme.muted, CircleShape)
