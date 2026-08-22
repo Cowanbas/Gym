@@ -739,16 +739,17 @@ fun SettingsModal(onDismiss: () -> Unit) {
     ) { uri ->
         uri?.let {
             try {
-                val prefs = context.getSharedPreferences("gym_store", Context.MODE_PRIVATE)
-                val allEntries = prefs.all
-                val jsonObject = JSONObject()
-                allEntries.forEach { (key, value) ->
-                    if (value != null) {
-                        jsonObject.put(key, value)
-                    }
-                }
                 context.contentResolver.openOutputStream(uri)?.use { outputStream ->
+                    val prefs = context.getSharedPreferences("gym_store", Context.MODE_PRIVATE)
+                    val allEntries = prefs.all
+                    val jsonObject = JSONObject()
+                    allEntries.forEach { (key, value) ->
+                        if (value != null) {
+                            jsonObject.put(key, value)
+                        }
+                    }
                     outputStream.write(jsonObject.toString().toByteArray())
+                    outputStream.flush()
                 }
                 android.widget.Toast.makeText(context, "Settings exported successfully", android.widget.Toast.LENGTH_SHORT).show()
             } catch (e: Exception) {
@@ -762,35 +763,41 @@ fun SettingsModal(onDismiss: () -> Unit) {
     ) { uri ->
         uri?.let {
             try {
+                try {
+                    context.contentResolver.takePersistableUriPermission(
+                        uri,
+                        android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION
+                    )
+                } catch (_: Exception) {}
+
                 val jsonStr = context.contentResolver.openInputStream(uri)?.use { inputStream ->
                     inputStream.bufferedReader().use { it.readText() }
-                }
-                if (jsonStr != null) {
-                    val jsonObject = JSONObject(jsonStr)
-                    val prefs = context.getSharedPreferences("gym_store", Context.MODE_PRIVATE)
-                    prefs.edit {
-                        clear()
-                        jsonObject.keys().forEach { key ->
-                            when (val value = jsonObject.get(key)) {
-                                is String -> putString(key, value)
-                                is Int -> putInt(key, value)
-                                is Boolean -> putBoolean(key, value)
-                                is Float -> putFloat(key, value)
-                                is Long -> putLong(key, value)
-                                else -> putString(key, value.toString())
-                            }
-                        }
-                    }
-                    android.widget.Toast.makeText(context, "Settings imported successfully", android.widget.Toast.LENGTH_SHORT).show()
+                } ?: throw Exception("O arquivo está vazio ou não pôde ser lido.")
 
-                    var ctx = context
-                    while (ctx is android.content.ContextWrapper) {
-                        if (ctx is android.app.Activity) {
-                            ctx.recreate()
-                            break
+                val jsonObject = JSONObject(jsonStr)
+                val prefs = context.getSharedPreferences("gym_store", Context.MODE_PRIVATE)
+                prefs.edit {
+                    clear()
+                    jsonObject.keys().forEach { key ->
+                        when (val value = jsonObject.get(key)) {
+                            is String -> putString(key, value)
+                            is Int -> putInt(key, value)
+                            is Boolean -> putBoolean(key, value)
+                            is Float -> putFloat(key, value)
+                            is Long -> putLong(key, value)
+                            else -> putString(key, value.toString())
                         }
-                        ctx = ctx.baseContext
                     }
+                }
+                android.widget.Toast.makeText(context, "Settings imported successfully", android.widget.Toast.LENGTH_SHORT).show()
+
+                var ctx = context
+                while (ctx is android.content.ContextWrapper) {
+                    if (ctx is android.app.Activity) {
+                        ctx.recreate()
+                        break
+                    }
+                    ctx = ctx.baseContext
                 }
             } catch (e: Exception) {
                 android.widget.Toast.makeText(context, "Import failed: ${e.localizedMessage}", android.widget.Toast.LENGTH_SHORT).show()
@@ -850,7 +857,7 @@ fun SettingsModal(onDismiss: () -> Unit) {
                 shape = RoundedCornerShape(8.dp),
                 border = BorderStroke(1.dp, AppTheme.border),
                 modifier = Modifier.fillMaxWidth().clickable {
-                    importLauncher.launch(arrayOf("application/json", "*/*"))
+                    importLauncher.launch(arrayOf("application/json", "text/plain", "*/*"))
                 }
             ) {
                 Row(
@@ -2074,7 +2081,32 @@ fun MetricCard(icon: ImageVector, value: String, label: String, modifier: Modifi
 @Composable
 fun HeatmapGrid(history: Map<String, WorkoutHistory>) {
     val now = remember { LocalDate.now() }
-    val days = remember { (111 downTo 0).map { now.minusDays(it.toLong()) } }
+    val currentMonday = remember(now) {
+        now.with(java.time.temporal.TemporalAdjusters.previousOrSame(java.time.DayOfWeek.MONDAY))
+    }
+    val startMonday = remember(currentMonday) {
+        currentMonday.minusWeeks(15)
+    }
+
+    val weeks = remember(startMonday) {
+        (0..15).map { weekIndex ->
+            val weekStart = startMonday.plusWeeks(weekIndex.toLong())
+            val daysMap = (0..6).associate { dayOffset ->
+                val date = weekStart.plusDays(dayOffset.toLong())
+                date.dayOfWeek.value to date
+            }
+            listOf(
+                daysMap[7],
+                daysMap[6],
+                daysMap[5],
+                daysMap[4],
+                daysMap[3],
+                daysMap[2],
+                daysMap[1]
+            )
+        }
+    }
+
     Box(
         modifier = Modifier.fillMaxWidth(),
         contentAlignment = Alignment.Center
@@ -2083,17 +2115,21 @@ fun HeatmapGrid(history: Map<String, WorkoutHistory>) {
             modifier = Modifier.horizontalScroll(rememberScrollState()),
             horizontalArrangement = Arrangement.spacedBy(3.dp)
         ) {
-            days.chunked(7).forEach { colDays ->
+            weeks.forEach { colDays ->
                 Column(verticalArrangement = Arrangement.spacedBy(3.dp)) {
                     colDays.forEach { date ->
-                        Box(
-                            modifier = Modifier
-                                .size(10.dp)
-                                .background(
-                                    if (history.containsKey(fmt(date))) AppTheme.primary else AppTheme.hover,
-                                    RoundedCornerShape(2.dp)
-                                )
-                        )
+                        if (date != null) {
+                            Box(
+                                modifier = Modifier
+                                    .size(10.dp)
+                                    .background(
+                                        if (history.containsKey(fmt(date))) AppTheme.primary else AppTheme.hover,
+                                        RoundedCornerShape(2.dp)
+                                    )
+                            )
+                        } else {
+                            Spacer(modifier = Modifier.size(10.dp))
+                        }
                     }
                 }
             }
