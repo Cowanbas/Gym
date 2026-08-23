@@ -556,6 +556,7 @@ fun RoutinesTab(
             var isDragging by remember { mutableStateOf(false) }
 
             Card(
+                onClick = { if (!isDragging) editingKey = day.key },
                 colors = CardDefaults.cardColors(containerColor = AppTheme.card),
                 shape = RoundedCornerShape(10.dp),
                 border = BorderStroke(
@@ -571,7 +572,6 @@ fun RoutinesTab(
                         scaleX = if (isDragging) 1.02f else 1f
                         scaleY = if (isDragging) 1.02f else 1f
                     }
-                    .clickable { if (!isDragging) editingKey = day.key }
             ) {
                 Row(modifier = Modifier.padding(14.dp), verticalAlignment = Alignment.CenterVertically) {
                     Box(
@@ -832,12 +832,13 @@ fun SettingsModal(onDismiss: () -> Unit) {
             Text("Data management", fontSize = 12.sp, fontWeight = FontWeight.Normal, color = AppTheme.muted)
 
             Card(
+                onClick = {
+                    exportLauncher.launch("gym_settings_${LocalDate.now()}.json")
+                },
                 colors = CardDefaults.cardColors(containerColor = AppTheme.hover),
                 shape = RoundedCornerShape(8.dp),
                 border = BorderStroke(1.dp, AppTheme.border),
-                modifier = Modifier.fillMaxWidth().clickable {
-                    exportLauncher.launch("gym_settings_${LocalDate.now()}.json")
-                }
+                modifier = Modifier.fillMaxWidth()
             ) {
                 Row(
                     modifier = Modifier.padding(14.dp),
@@ -854,12 +855,13 @@ fun SettingsModal(onDismiss: () -> Unit) {
             }
 
             Card(
+                onClick = {
+                    importLauncher.launch(arrayOf("application/json", "text/plain", "*/*"))
+                },
                 colors = CardDefaults.cardColors(containerColor = AppTheme.hover),
                 shape = RoundedCornerShape(8.dp),
                 border = BorderStroke(1.dp, AppTheme.border),
-                modifier = Modifier.fillMaxWidth().clickable {
-                    importLauncher.launch(arrayOf("application/json", "text/plain", "*/*"))
-                }
+                modifier = Modifier.fillMaxWidth()
             ) {
                 Row(
                     modifier = Modifier.padding(14.dp),
@@ -919,6 +921,10 @@ fun TemplatesBottomSheetModal(
 
             items(templates) { template ->
                 Card(
+                    onClick = {
+                        onDismiss()
+                        onSelectTemplate(template.name)
+                    },
                     colors = CardDefaults.cardColors(containerColor = AppTheme.hover),
                     shape = RoundedCornerShape(8.dp),
                     border = BorderStroke(1.dp, AppTheme.border),
@@ -927,10 +933,6 @@ fun TemplatesBottomSheetModal(
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .clickable {
-                                onDismiss()
-                                onSelectTemplate(template.name)
-                            }
                             .padding(12.dp),
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
@@ -1021,7 +1023,7 @@ fun CopyTemplateModal(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text("Copy Existing Template", fontSize = 16.sp, fontWeight = FontWeight.Normal, color = AppTheme.text)
+                    Text("Copy existing template", fontSize = 16.sp, fontWeight = FontWeight.Normal, color = AppTheme.text)
                     IconButton(onClick = onDismiss) {
                         Icon(Icons.Default.Close, "Close", tint = AppTheme.muted)
                     }
@@ -1035,16 +1037,15 @@ fun CopyTemplateModal(
             if (selectedTemplate == null) {
                 items(templates) { template ->
                     Card(
+                        onClick = {
+                            selectedTemplate = template
+                            newName = "${template.name} (Copy)"
+                            errorMessage = null
+                        },
                         colors = CardDefaults.cardColors(containerColor = AppTheme.hover),
                         shape = RoundedCornerShape(8.dp),
                         border = BorderStroke(1.dp, AppTheme.border),
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable {
-                                selectedTemplate = template
-                                newName = "${template.name} (Copy)"
-                                errorMessage = null
-                            }
+                        modifier = Modifier.fillMaxWidth()
                     ) {
                         Row(
                             modifier = Modifier.padding(12.dp),
@@ -1200,10 +1201,11 @@ fun EditTemplateModal(
             items(WEEK_DAYS, key = { it.key }) { day ->
                 val routine = routinesMap[day.key] ?: Routine("Empty")
                 Card(
+                    onClick = { editingDayKey = day.key },
                     colors = CardDefaults.cardColors(containerColor = AppTheme.hover),
                     shape = RoundedCornerShape(8.dp),
                     border = BorderStroke(1.dp, AppTheme.border),
-                    modifier = Modifier.fillMaxWidth().clickable { editingDayKey = day.key }
+                    modifier = Modifier.fillMaxWidth()
                 ) {
                     Row(
                         modifier = Modifier.padding(12.dp),
@@ -1362,10 +1364,11 @@ fun CreateTemplateModal(
             items(WEEK_DAYS, key = { it.key }) { day ->
                 val routine = routinesMap[day.key] ?: Routine("Empty")
                 Card(
+                    onClick = { editingDayKey = day.key },
                     colors = CardDefaults.cardColors(containerColor = AppTheme.hover),
                     shape = RoundedCornerShape(8.dp),
                     border = BorderStroke(1.dp, AppTheme.border),
-                    modifier = Modifier.fillMaxWidth().clickable { editingDayKey = day.key }
+                    modifier = Modifier.fillMaxWidth()
                 ) {
                     Row(
                         modifier = Modifier.padding(12.dp),
@@ -1958,10 +1961,11 @@ fun RoutinePickerBottomSheet(
                 Spacer(Modifier.height(8.dp))
 
                 Card(
+                    onClick = { onSelectDefault() },
                     colors = CardDefaults.cardColors(containerColor = AppTheme.hover),
                     shape = RoundedCornerShape(8.dp),
                     border = BorderStroke(1.dp, AppTheme.border),
-                    modifier = Modifier.fillMaxWidth().clickable { onSelectDefault() }
+                    modifier = Modifier.fillMaxWidth()
                 ) {
                     Row(modifier = Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
                         Icon(Icons.Default.Today, null, tint = AppTheme.text, modifier = Modifier.size(20.dp))
@@ -1977,10 +1981,11 @@ fun RoutinePickerBottomSheet(
                 Spacer(Modifier.height(6.dp))
 
                 Card(
+                    onClick = { onSelectEmpty() },
                     colors = CardDefaults.cardColors(containerColor = AppTheme.hover),
                     shape = RoundedCornerShape(8.dp),
                     border = BorderStroke(1.dp, AppTheme.border),
-                    modifier = Modifier.fillMaxWidth().clickable { onSelectEmpty() }
+                    modifier = Modifier.fillMaxWidth()
                 ) {
                     Row(modifier = Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
                         Icon(Icons.Default.Add, null, tint = AppTheme.text, modifier = Modifier.size(20.dp))
@@ -2007,13 +2012,13 @@ fun RoutinePickerBottomSheet(
                     val routine = template.routines[dayKey] ?: return@forEach
                     val dayName = WEEK_DAYS.find { it.key == dayKey }?.name ?: dayKey
                     Card(
+                        onClick = { onSelectRoutine(routine) },
                         colors = CardDefaults.cardColors(containerColor = AppTheme.hover),
                         shape = RoundedCornerShape(8.dp),
                         border = BorderStroke(1.dp, AppTheme.border),
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(bottom = 6.dp)
-                            .clickable { onSelectRoutine(routine) }
                     ) {
                         Row(
                             modifier = Modifier.padding(12.dp),
@@ -2260,6 +2265,7 @@ fun CalendarGrid(
                                 .aspectRatio(1f)
                                 .padding(2.dp)
                                 .clip(CircleShape)
+                                .clickable { onDateSelected(dateKey) }
                                 .background(if (hasWorkout) AppTheme.primary else AppTheme.hover)
                                 .then(
                                     when {
@@ -2267,8 +2273,7 @@ fun CalendarGrid(
                                         isToday -> Modifier.border(1.dp, AppTheme.text, CircleShape)
                                         else -> Modifier
                                     }
-                                )
-                                .clickable { onDateSelected(dateKey) },
+                                ),
                             contentAlignment = Alignment.Center
                         ) {
                             Text("$dayNum", fontSize = 11.sp, fontWeight = FontWeight.Normal,
@@ -2293,7 +2298,7 @@ fun DayDetailCard(
     onDelete: () -> Unit
 ) {
     Card(
-            colors = CardDefaults.cardColors(containerColor = AppTheme.card),
+        colors = CardDefaults.cardColors(containerColor = AppTheme.card),
         shape = RoundedCornerShape(10.dp),
         border = BorderStroke(1.dp, AppTheme.border),
         modifier = Modifier.fillMaxWidth()
