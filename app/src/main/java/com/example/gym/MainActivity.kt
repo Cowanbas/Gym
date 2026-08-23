@@ -1,6 +1,5 @@
 package com.example.gym
 
-import kotlin.time.Duration.Companion.milliseconds
 import android.content.Context
 import android.os.Bundle
 import android.widget.Toast
@@ -8,7 +7,6 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -61,6 +59,7 @@ import java.time.YearMonth
 import java.time.format.DateTimeFormatter
 import java.time.format.TextStyle as JavaTextStyle
 import java.util.Locale
+import kotlin.time.Duration.Companion.milliseconds
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -290,7 +289,6 @@ val WEEK_DAYS = listOf(
 
 fun routineKeyForDate(date: LocalDate): String = DAY_KEYS[date.dayOfWeek.value - 1]
 
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun MainHomeScreen() {
     val context = LocalContext.current
