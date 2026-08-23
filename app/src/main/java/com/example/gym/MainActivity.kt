@@ -1786,8 +1786,6 @@ fun RoutineEditModal(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(Icons.Default.FitnessCenter, null, tint = AppTheme.text, modifier = Modifier.size(15.dp))
-                        Spacer(Modifier.width(6.dp))
                         Text("Exercises", fontWeight = FontWeight.Normal, fontSize = 13.sp, color = AppTheme.text)
                     }
                     TextButton(onClick = { exercises.add(Exercise()) }) {
@@ -2597,8 +2595,6 @@ fun HistoryEditModal(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(Icons.Default.FitnessCenter, null, tint = AppTheme.text, modifier = Modifier.size(15.dp))
-                        Spacer(Modifier.width(6.dp))
                         Text("Exercises", fontWeight = FontWeight.Normal, fontSize = 13.sp, color = AppTheme.text)
                     }
                     TextButton(onClick = { exercises.add(Exercise()) }) {
