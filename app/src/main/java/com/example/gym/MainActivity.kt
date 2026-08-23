@@ -1,5 +1,6 @@
 package com.example.gym
 
+import kotlin.time.Duration.Companion.milliseconds
 import android.content.Context
 import android.os.Bundle
 import android.widget.Toast
@@ -27,6 +28,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.*
 import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.outlined.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.snapshots.SnapshotStateMap
@@ -49,6 +51,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
 import androidx.core.content.edit
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.json.JSONArray
@@ -268,7 +271,7 @@ object Store {
 }
 
 val DATE_FMT: DateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
-fun fmt(date: LocalDate): String = date.format(DATE_FMT)
+val fmt: (LocalDate) -> String = { date -> date.format(DATE_FMT) }
 
 val DAY_KEYS = listOf("monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday")
 
@@ -291,13 +294,25 @@ fun routineKeyForDate(date: LocalDate): String = DAY_KEYS[date.dayOfWeek.value -
 @Composable
 fun MainHomeScreen() {
     val context = LocalContext.current
-    val pagerState = rememberPagerState(pageCount = { 2 })
+    val pagerState = rememberPagerState(pageCount = { 3 })
 
     val routines = remember { mutableStateMapOf<String, Routine>() }
     val templates = remember { mutableStateListOf<WorkoutTemplate>() }
     var activeTemplateName by remember { mutableStateOf("Template A") }
     val history = remember { mutableStateMapOf<String, WorkoutHistory>() }
     var loaded by remember { mutableStateOf(false) }
+    var stopwatchTimeInMillis by remember { mutableLongStateOf(0L) }
+    var stopwatchIsRunning by remember { mutableStateOf(false) }
+
+    LaunchedEffect(stopwatchIsRunning) {
+        if (stopwatchIsRunning) {
+            val startTime = System.currentTimeMillis() - stopwatchTimeInMillis
+            while (stopwatchIsRunning) {
+                stopwatchTimeInMillis = System.currentTimeMillis() - startTime
+                delay(50.milliseconds)
+            }
+        }
+    }
 
     val scope = rememberCoroutineScope()
 
@@ -355,6 +370,16 @@ fun MainHomeScreen() {
                     selected = pagerState.currentPage == 1,
                     onClick = { scope.launch { pagerState.scrollToPage(1) } },
                     icon = { Icon(Icons.Default.CalendarMonth, null, modifier = Modifier.size(26.dp)) },
+                    colors = NavigationBarItemDefaults.colors(
+                        selectedIconColor = AppTheme.text,
+                        unselectedIconColor = AppTheme.muted,
+                        indicatorColor = AppTheme.hover
+                    )
+                )
+                NavigationBarItem(
+                    selected = pagerState.currentPage == 2,
+                    onClick = { scope.launch { pagerState.scrollToPage(2) } },
+                    icon = { Icon(Icons.Outlined.Timer, null, modifier = Modifier.size(26.dp)) },
                     colors = NavigationBarItemDefaults.colors(
                         selectedIconColor = AppTheme.text,
                         unselectedIconColor = AppTheme.muted,
@@ -448,6 +473,10 @@ fun MainHomeScreen() {
                             onCompleteToday = { key, routine ->
                                 history[todayStr] = WorkoutHistory(todayStr, key, routine.title, routine.exercises)
                                 persistHistory()
+                            },
+                            onDeleteWorkout = { dateKey ->
+                                history.remove(dateKey)
+                                persistHistory()
                             }
                         )
                         1 -> ConstancyTab(
@@ -463,6 +492,108 @@ fun MainHomeScreen() {
                                 persistHistory()
                             }
                         )
+                        2 -> StopwatchTab(
+                            timeInMillis = stopwatchTimeInMillis,
+                            isRunning = stopwatchIsRunning,
+                            onTimeChanged = { stopwatchTimeInMillis = it },
+                            onRunningChanged = { stopwatchIsRunning = it }
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun StopwatchTab(
+    timeInMillis: Long,
+    isRunning: Boolean,
+    onTimeChanged: (Long) -> Unit,
+    onRunningChanged: (Boolean) -> Unit
+) {
+    val totalSeconds = timeInMillis / 1000
+    val deciseconds = (timeInMillis % 1000) / 100
+    val minutes = totalSeconds / 60
+    val seconds = totalSeconds % 60
+
+    val timeText = if (minutes > 0) {
+        String.format(Locale.US, "%d:%02d.%d", minutes, seconds, deciseconds)
+    } else {
+        String.format(Locale.US, "%d.%d", seconds, deciseconds)
+    }
+
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(AppTheme.card)
+            .padding(24.dp)
+    ) {
+        Box(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                text = timeText,
+                style = TextStyle(
+                    fontSize = 72.sp,
+                    fontWeight = FontWeight.Light,
+                    color = AppTheme.text,
+                    textAlign = TextAlign.Center
+                )
+            )
+        }
+
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(bottom = 48.dp),
+            contentAlignment = Alignment.BottomCenter
+        ) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 32.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Surface(
+                    shape = CircleShape,
+                    color = AppTheme.muted.copy(alpha = 0.4f),
+                    modifier = Modifier
+                        .size(70.dp)
+                        .clip(CircleShape)
+                        .clickable {
+                            onRunningChanged(!isRunning)
+                        }
+                ) {
+                    Box(contentAlignment = Alignment.Center) {
+                        Icon(
+                            imageVector = if (isRunning) Icons.Default.Pause else Icons.Default.PlayArrow,
+                            contentDescription = if (isRunning) "Pause" else "Start",
+                            tint = AppTheme.text,
+                            modifier = Modifier.size(36.dp)
+                        )
+                    }
+                }
+
+                if (timeInMillis > 0) {
+                    Box(
+                        modifier = Modifier.align(Alignment.CenterStart)
+                    ) {
+                        IconButton(
+                            onClick = {
+                                onTimeChanged(0L)
+                                onRunningChanged(false)
+                            },
+                            modifier = Modifier.size(56.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Refresh,
+                                contentDescription = "Reset",
+                                tint = AppTheme.text,
+                                modifier = Modifier.size(28.dp)
+                            )
+                        }
                     }
                 }
             }
@@ -484,7 +615,8 @@ fun RoutinesTab(
     onUpdateTemplate: (String, WorkoutTemplate) -> Unit,
     onRoutineUpdated: (String, Routine) -> Unit,
     onSwapRoutines: (Int, Int) -> Unit,
-    onCompleteToday: (String, Routine) -> Unit
+    onCompleteToday: (String, Routine) -> Unit,
+    onDeleteWorkout: (String) -> Unit
 ) {
     var editingKey by remember { mutableStateOf<String?>(null) }
     var menuExpanded by remember { mutableStateOf(false) }
@@ -532,14 +664,14 @@ fun RoutinesTab(
                             modifier = Modifier.background(AppTheme.card).border(1.dp, AppTheme.border, RoundedCornerShape(8.dp))
                         ) {
                             DropdownMenuItem(
-                                text = { Text("Settings", color = AppTheme.text, fontWeight = FontWeight.Normal) },
+                                text = { Text("Settings", color = AppTheme.text, fontWeight = FontWeight.Normal, textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth()) },
                                 onClick = {
                                     menuExpanded = false
                                     showSettingsModal = true
                                 }
                             )
                             DropdownMenuItem(
-                                text = { Text("Templates", color = AppTheme.text, fontWeight = FontWeight.Normal) },
+                                text = { Text("Templates", color = AppTheme.text, fontWeight = FontWeight.Normal, textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth()) },
                                 onClick = {
                                     menuExpanded = false
                                     showTemplatesModal = true
@@ -661,9 +793,11 @@ fun RoutinesTab(
     editingKey?.let { key ->
         val routine = routines[key] ?: Routine("Empty")
         val isToday = key == todayKey
+        val isDoneToday = isToday && history.containsKey(formattedToday)
         RoutineEditModal(
             routine = routine,
             isToday = isToday,
+            isDoneToday = isDoneToday,
             onDismiss = { editingKey = null },
             onSave = { updated ->
                 onRoutineUpdated(key, updated)
@@ -672,6 +806,10 @@ fun RoutinesTab(
             onComplete = { updated ->
                 onRoutineUpdated(key, updated)
                 onCompleteToday(key, updated)
+                editingKey = null
+            },
+            onUnfinish = {
+                onDeleteWorkout(formattedToday)
                 editingKey = null
             }
         )
@@ -1269,6 +1407,7 @@ fun EditTemplateModal(
         RoutineEditModal(
             routine = routine,
             isToday = false,
+            isDoneToday = false,
             onDismiss = { editingDayKey = null },
             onSave = { updated ->
                 routinesMap[dayKey] = updated
@@ -1277,7 +1416,8 @@ fun EditTemplateModal(
             onComplete = { updated ->
                 routinesMap[dayKey] = updated
                 editingDayKey = null
-            }
+            },
+            onUnfinish = {}
         )
     }
 
@@ -1418,6 +1558,7 @@ fun CreateTemplateModal(
         RoutineEditModal(
             routine = routine,
             isToday = false,
+            isDoneToday = false,
             onDismiss = { editingDayKey = null },
             onSave = { updated ->
                 routinesMap[dayKey] = updated
@@ -1426,7 +1567,8 @@ fun CreateTemplateModal(
             onComplete = { updated ->
                 routinesMap[dayKey] = updated
                 editingDayKey = null
-            }
+            },
+            onUnfinish = {}
         )
     }
 }
@@ -1597,9 +1739,11 @@ fun NumberInputField(
 fun RoutineEditModal(
     routine: Routine,
     isToday: Boolean,
+    isDoneToday: Boolean = false,
     onDismiss: () -> Unit,
     onSave: (Routine) -> Unit,
-    onComplete: (Routine) -> Unit
+    onComplete: (Routine) -> Unit,
+    onUnfinish: () -> Unit = {}
 ) {
     var title by remember { mutableStateOf(routine.title) }
     val exercises = remember { routine.exercises.toMutableStateList() }
@@ -1685,22 +1829,37 @@ fun RoutineEditModal(
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     if (isToday) {
                         val hasExercises = exercises.isNotEmpty()
-                        Button(
-                            onClick = {
-                                if (hasExercises) {
-                                    onComplete(Routine(title.ifBlank { "Empty" }, exercises.toList()))
-                                }
-                            },
-                            enabled = hasExercises,
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = AppTheme.primary,
-                                disabledContainerColor = AppTheme.primary.copy(alpha = 0.4f)
-                            ),
-                            modifier = Modifier.weight(1f)
-                        ) {
-                            Icon(Icons.Default.Check, null, tint = Color.White, modifier = Modifier.size(15.dp))
-                            Spacer(Modifier.width(6.dp))
-                            Text("Finish", color = Color.White, fontWeight = FontWeight.Normal)
+                        if (isDoneToday) {
+                            Button(
+                                onClick = { onUnfinish() },
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = AppTheme.primary
+                                ),
+                                border = BorderStroke(1.dp, AppTheme.border),
+                                modifier = Modifier.weight(1f)
+                            ) {
+                                Icon(Icons.Default.Close, null, tint = AppTheme.text, modifier = Modifier.size(15.dp))
+                                Spacer(Modifier.width(6.dp))
+                                Text("Unfinish", color = AppTheme.text, fontWeight = FontWeight.Normal)
+                            }
+                        } else {
+                            Button(
+                                onClick = {
+                                    if (hasExercises) {
+                                        onComplete(Routine(title.ifBlank { "Empty" }, exercises.toList()))
+                                    }
+                                },
+                                enabled = hasExercises,
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = AppTheme.primary,
+                                    disabledContainerColor = AppTheme.primary.copy(alpha = 0.4f)
+                                ),
+                                modifier = Modifier.weight(1f)
+                            ) {
+                                Icon(Icons.Default.Check, null, tint = Color.White, modifier = Modifier.size(15.dp))
+                                Spacer(Modifier.width(6.dp))
+                                Text("Finish", color = Color.White, fontWeight = FontWeight.Normal)
+                            }
                         }
                     }
                     Button(
