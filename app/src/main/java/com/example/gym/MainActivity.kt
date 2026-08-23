@@ -97,6 +97,7 @@ fun GymTheme(content: @Composable () -> Unit) {
     )
 }
 
+@Immutable
 data class Exercise(
     val id: String = System.nanoTime().toString(),
     val name: String = "",
@@ -119,6 +120,7 @@ data class Exercise(
     }
 }
 
+@Immutable
 data class Routine(
     val title: String = "Workout",
     val exercises: List<Exercise> = emptyList()
@@ -137,6 +139,7 @@ data class Routine(
     }
 }
 
+@Immutable
 data class WorkoutTemplate(
     val name: String,
     val routines: Map<String, Routine>
@@ -160,6 +163,7 @@ data class WorkoutTemplate(
     }
 }
 
+@Immutable
 data class WorkoutHistory(
     val date: String,
     val routineKey: String = "",
@@ -269,6 +273,7 @@ fun fmt(date: LocalDate): String = date.format(DATE_FMT)
 @Suppress("SpellCheckingInspection")
 val DAY_KEYS = listOf("monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday")
 
+@Stable
 data class WeekDay(val key: String, val name: String, val short: String)
 
 @Suppress("SpellCheckingInspection")
@@ -326,8 +331,9 @@ fun MainHomeScreen() {
     fun persistTemplates() = scope.launch { Store.saveTemplates(context, templates.toList()) }
     fun persistHistory() = scope.launch { Store.saveHistory(context, history.toMap()) }
 
-    val todayKey = routineKeyForDate(LocalDate.now())
-    val todayStr = fmt(LocalDate.now())
+    val today = remember { LocalDate.now() }
+    val todayKey = remember(today) { routineKeyForDate(today) }
+    val todayStr = remember(today) { fmt(today) }
 
     Scaffold(
         containerColor = AppTheme.card,
@@ -490,7 +496,7 @@ fun RoutinesTab(
     var showSettingsModal by remember { mutableStateOf(false) }
     var showTemplatesModal by remember { mutableStateOf(false) }
 
-    val todayShort = WEEK_DAYS.first { it.key == todayKey }.short
+    val todayShort = remember(todayKey) { WEEK_DAYS.first { it.key == todayKey }.short }
     val itemHeightPx = with(LocalDensity.current) { 72.dp.toPx() }
 
     LazyColumn(
@@ -1863,7 +1869,7 @@ fun ConstancyTab(
                     date = dateKey,
                     routineKey = "",
                     routineTitle = routine.title,
-                    exercises = routine.exercises.map { it.copy(id = System.nanoTime().toString() + it.id) }
+                    exercises = routine.exercises.map { it.copy(id = System.nanoTime().toString() + "_" + it.id) }
                 )
             },
             onSelectDefault = {
@@ -1875,7 +1881,7 @@ fun ConstancyTab(
                     date = dateKey,
                     routineKey = key,
                     routineTitle = base?.title ?: "Empty",
-                    exercises = base?.exercises?.map { it.copy(id = System.nanoTime().toString() + it.id) } ?: emptyList()
+                    exercises = base?.exercises?.map { it.copy(id = System.nanoTime().toString() + "_" + it.id) } ?: emptyList()
                 )
             },
             onSelectEmpty = {
@@ -1932,8 +1938,8 @@ fun RoutinePickerBottomSheet(
     onSelectDefault: () -> Unit,
     onSelectEmpty: () -> Unit
 ) {
-    val date = LocalDate.parse(dateKey, DATE_FMT)
-    val defaultKey = routineKeyForDate(date)
+    val date = remember(dateKey) { LocalDate.parse(dateKey, DATE_FMT) }
+    val defaultKey = remember(date) { routineKeyForDate(date) }
     val defaultRoutine = currentRoutines[defaultKey]
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
@@ -2148,7 +2154,7 @@ fun HeatmapGrid(history: Map<String, WorkoutHistory>) {
 
 @Composable
 fun WeeklyBarChart(history: Map<String, WorkoutHistory>, monthlyRef: YearMonth) {
-    val weeksData by remember(monthlyRef) {
+    val weeksData by remember(monthlyRef, history) {
         derivedStateOf {
             val firstDayOfMonth = monthlyRef.atDay(1)
             val lastDayOfMonth = monthlyRef.atEndOfMonth()
@@ -2234,11 +2240,11 @@ fun CalendarGrid(
     selectedDateKey: String?,
     onDateSelected: (String) -> Unit
 ) {
-    val firstDay = selectedMonth.atDay(1)
-    val daysInMonth = selectedMonth.lengthOfMonth()
-    val startingWeekday = (firstDay.dayOfWeek.value - 1 + 7) % 7
-    val weekHeaders = listOf("M", "T", "W", "T", "F", "S", "S")
-    val today = fmt(LocalDate.now())
+    val firstDay = remember(selectedMonth) { selectedMonth.atDay(1) }
+    val daysInMonth = remember(selectedMonth) { selectedMonth.lengthOfMonth() }
+    val startingWeekday = remember(firstDay) { (firstDay.dayOfWeek.value - 1 + 7) % 7 }
+    val weekHeaders = remember { listOf("M", "T", "W", "T", "F", "S", "S") }
+    val todayStr = remember { fmt(LocalDate.now()) }
 
     Column {
         Row(modifier = Modifier.fillMaxWidth()) {
@@ -2255,10 +2261,10 @@ fun CalendarGrid(
                 for (c in 0 until 7) {
                     val dayNum = (r * 7 + c) - startingWeekday + 1
                     if (dayNum in 1..daysInMonth) {
-                        val dateKey = fmt(selectedMonth.atDay(dayNum))
+                        val dateKey = remember(selectedMonth, dayNum) { fmt(selectedMonth.atDay(dayNum)) }
                         val hasWorkout = history.containsKey(dateKey)
                         val isSelected = selectedDateKey == dateKey
-                        val isToday = dateKey == today
+                        val isToday = dateKey == todayStr
                         Box(
                             modifier = Modifier
                                 .weight(1f)
