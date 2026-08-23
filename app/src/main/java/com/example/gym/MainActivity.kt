@@ -777,7 +777,7 @@ fun SettingsModal(onDismiss: () -> Unit) {
 
                 val jsonStr = context.contentResolver.openInputStream(uri)?.use { inputStream ->
                     inputStream.bufferedReader().use { it.readText() }
-                } ?: throw Exception("O arquivo está vazio ou não pôde ser lido.")
+                } ?: throw Exception("The file is empty or could not be read.")
 
                 val jsonObject = JSONObject(jsonStr)
                 val prefs = context.getSharedPreferences("gym_store", Context.MODE_PRIVATE)
@@ -1694,9 +1694,18 @@ fun RoutineEditModal(
                         Text("Save", color = AppTheme.text)
                     }
                     if (isToday) {
+                        val hasExercises = exercises.isNotEmpty()
                         Button(
-                            onClick = { onComplete(Routine(title.ifBlank { "Empty" }, exercises.toList())) },
-                            colors = ButtonDefaults.buttonColors(containerColor = AppTheme.primary),
+                            onClick = {
+                                if (hasExercises) {
+                                    onComplete(Routine(title.ifBlank { "Empty" }, exercises.toList()))
+                                }
+                            },
+                            enabled = hasExercises,
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = AppTheme.primary,
+                                disabledContainerColor = AppTheme.primary.copy(alpha = 0.4f)
+                            ),
                             modifier = Modifier.weight(1f)
                         ) {
                             Icon(Icons.Default.Check, null, tint = Color.White, modifier = Modifier.size(15.dp))
