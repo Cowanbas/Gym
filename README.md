@@ -17,7 +17,6 @@ O intuito do aplicativo é ser de código livre para que qualquer pessoa possa a
 - *Sábados e Domingos não vão mais interromper a sequência.* ✅
 - *Treinos aos Sábados e Domingos irão contar na sequência.* ✅
 - *Função de exportar e importar as fichas de treino e o calendário.* ✅
-- *Gráfico mostrando a progressão de cargas com o passar do tempo.* ❌
 - *Nova aba com um cronômetro para marcar o tempo de descanso.* ❌
 
 # Supostas próximas correções
