@@ -2293,7 +2293,7 @@ fun DayDetailCard(
     onDelete: () -> Unit
 ) {
     Card(
-        colors = CardDefaults.cardColors(containerColor = AppTheme.card),
+            colors = CardDefaults.cardColors(containerColor = AppTheme.card),
         shape = RoundedCornerShape(10.dp),
         border = BorderStroke(1.dp, AppTheme.border),
         modifier = Modifier.fillMaxWidth()
