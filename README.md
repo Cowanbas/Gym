@@ -10,7 +10,7 @@ O intuito do aplicativo é ser de código livre para que qualquer pessoa possa a
 # Features que serão adicionadas.
 
 
-- *Ícone para o aplicativo.* ❌
+- *Ícone para o aplicativo.* ✅
 - *Aba de configurações nos três pontinhos.* ✅
 - *Função de copiar uma ficha existente para uma nova.* ✅
 - *Nova aba para dividir as repetições com pesos diferentes.* ❌
