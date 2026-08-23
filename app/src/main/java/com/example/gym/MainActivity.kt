@@ -1,5 +1,6 @@
 package com.example.gym
 
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
@@ -925,7 +926,7 @@ fun TemplatesBottomSheetModal(
                 Spacer(Modifier.height(4.dp))
             }
 
-            items(templates) { template ->
+            items(templates, key = { it.name }) { template ->
                 Card(
                     onClick = {
                         onDismiss()
@@ -1041,7 +1042,7 @@ fun CopyTemplateModal(
             }
 
             if (selectedTemplate == null) {
-                items(templates) { template ->
+                items(templates, key = { it.name }) { template ->
                     Card(
                         onClick = {
                             selectedTemplate = template
@@ -2009,13 +2010,14 @@ fun RoutinePickerBottomSheet(
                 Spacer(Modifier.height(4.dp))
                 Text("Or choose a ready-made template.", fontSize = 11.sp, fontWeight = FontWeight.Normal, color = AppTheme.muted)
             }
-
-            items(templates) { template ->
+            items(templates, key = { it.name }) { template ->
                 Spacer(Modifier.height(4.dp))
                 Text(template.name, fontSize = 12.sp, fontWeight = FontWeight.Normal, color = AppTheme.text)
                 Spacer(Modifier.height(4.dp))
-                DAY_KEYS.forEach { dayKey ->
-                    val routine = template.routines[dayKey] ?: return@forEach
+
+                val validKeys = DAY_KEYS.filter { template.routines.containsKey(it) }
+                for (dayKey in validKeys) {
+                    val routine = template.routines[dayKey]!!
                     val dayName = WEEK_DAYS.find { it.key == dayKey }?.name ?: dayKey
                     Card(
                         onClick = { onSelectRoutine(routine) },
