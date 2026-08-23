@@ -829,7 +829,7 @@ fun SettingsModal(onDismiss: () -> Unit) {
                 }
             }
             Spacer(Modifier.height(8.dp))
-            Text("Data Management", fontSize = 12.sp, fontWeight = FontWeight.Normal, color = AppTheme.muted)
+            Text("Data management", fontSize = 12.sp, fontWeight = FontWeight.Normal, color = AppTheme.muted)
 
             Card(
                 colors = CardDefaults.cardColors(containerColor = AppTheme.hover),
@@ -1071,7 +1071,7 @@ fun CopyTemplateModal(
                         },
                         modifier = Modifier.fillMaxWidth(),
                         singleLine = true,
-                        label = { Text("New Template Name", color = AppTheme.muted) },
+                        label = { Text("New Template name", color = AppTheme.muted) },
                         textStyle = TextStyle(fontSize = 14.sp, color = AppTheme.text),
                         keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
                         colors = OutlinedTextFieldDefaults.colors(
@@ -1163,7 +1163,7 @@ fun EditTemplateModal(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text("Edit Template", fontSize = 16.sp, fontWeight = FontWeight.Normal, color = AppTheme.text)
+                    Text("Edit template", fontSize = 16.sp, fontWeight = FontWeight.Normal, color = AppTheme.text)
                     IconButton(onClick = onDismiss) {
                         Icon(Icons.Default.Close, "Close", tint = AppTheme.muted)
                     }
@@ -1194,7 +1194,7 @@ fun EditTemplateModal(
 
             item {
                 Spacer(Modifier.height(4.dp))
-                Text("Template workouts (tap to edit or delete exercises):", fontSize = 12.sp, color = AppTheme.muted, fontWeight = FontWeight.Normal)
+                Text("Template workouts tap to edit or delete exercises", fontSize = 12.sp, color = AppTheme.muted, fontWeight = FontWeight.Normal)
             }
 
             items(WEEK_DAYS, key = { it.key }) { day ->
