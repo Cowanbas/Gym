@@ -22,7 +22,6 @@ O intuito do aplicativo é ser de código livre para que qualquer pessoa possa a
 
 # Supostas próximas correções
 
-- *Atualizar a Exportação/Importação das configurações* ❌
 - *Gráfico de constância dcomeçar de baixo para cima.* ✅
 - *Corrigir opção de colocar dois números 01,02,03...* ✅
 - *Correções ortográficas.*  ✅
