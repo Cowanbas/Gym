@@ -1,15 +1,14 @@
 package com.example.gym
 
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.pager.HorizontalPager
-import androidx.compose.foundation.pager.rememberPagerState
-import androidx.activity.enableEdgeToEdge
+import androidx.compose.runtime.Immutable
 import android.content.Context
 import android.os.Bundle
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -20,6 +19,8 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyItemScope
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -251,7 +252,6 @@ object Store {
         prefs(ctx).edit { putString(KEY_HISTORY, obj.toString()) }
     }
 
-    @Suppress("SpellCheckingInspection")
     fun defaultRoutines(): Map<String, Routine> = mapOf(
         "monday" to Routine("Empty", emptyList()),
         "tuesday" to Routine("Empty", emptyList()),
@@ -271,13 +271,11 @@ object Store {
 val DATE_FMT: DateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
 fun fmt(date: LocalDate): String = date.format(DATE_FMT)
 
-@Suppress("SpellCheckingInspection")
 val DAY_KEYS = listOf("monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday")
 
-@Stable
+@Immutable
 data class WeekDay(val key: String, val name: String, val short: String)
 
-@Suppress("SpellCheckingInspection")
 val WEEK_DAYS = listOf(
     WeekDay("monday", "Monday", "Mon"),
     WeekDay("tuesday", "Tuesday", "Tue"),
@@ -290,7 +288,7 @@ val WEEK_DAYS = listOf(
 
 fun routineKeyForDate(date: LocalDate): String = DAY_KEYS[date.dayOfWeek.value - 1]
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun MainHomeScreen() {
     val context = LocalContext.current
@@ -759,9 +757,9 @@ fun SettingsModal(onDismiss: () -> Unit) {
                     outputStream.write(jsonObject.toString().toByteArray())
                     outputStream.flush()
                 }
-                android.widget.Toast.makeText(context, "Settings exported successfully", android.widget.Toast.LENGTH_SHORT).show()
+                Toast.makeText(context, "Settings exported successfully", Toast.LENGTH_SHORT).show()
             } catch (e: Exception) {
-                android.widget.Toast.makeText(context, "Export failed: ${e.localizedMessage}", android.widget.Toast.LENGTH_SHORT).show()
+                Toast.makeText(context, "Export failed: ${e.localizedMessage}", Toast.LENGTH_SHORT).show()
             }
         }
     }
@@ -797,7 +795,7 @@ fun SettingsModal(onDismiss: () -> Unit) {
                         }
                     }
                 }
-                android.widget.Toast.makeText(context, "Settings imported successfully", android.widget.Toast.LENGTH_SHORT).show()
+                Toast.makeText(context, "Settings imported successfully", Toast.LENGTH_SHORT).show()
 
                 var ctx = context
                 while (ctx is android.content.ContextWrapper) {
@@ -808,7 +806,7 @@ fun SettingsModal(onDismiss: () -> Unit) {
                     ctx = ctx.baseContext
                 }
             } catch (e: Exception) {
-                android.widget.Toast.makeText(context, "Import failed: ${e.localizedMessage}", android.widget.Toast.LENGTH_SHORT).show()
+                Toast.makeText(context, "Import failed: ${e.localizedMessage}", Toast.LENGTH_SHORT).show()
             }
         }
     }
