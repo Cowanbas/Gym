@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 24 24">
+  <!-- Background rectangle to make the icon opaque for Play Store -->
+  <rect width="24" height="24" fill="#000000"/>
+  
+  <!-- Group containing the transformations from the XML -->
+  <g transform="translate(3, 3) scale(0.75)">
+    <!-- Central bar -->
+    <path fill="#757575" d="M9,11h6v2H9z"/>
+    <!-- Left weight block (inner) -->
+    <path fill="#757575" d="M6.5,6.5h2c0.28,0 0.5,0.22 0.5,0.5v10c0,0.28 -0.22,0.5 -0.5,0.5h-2c-0.28,0 -0.5,-0.22 -0.5,-0.5v-10c0,-0.28 0.22,-0.5 0.5,-0.5z"/>
+    <!-- Right weight block (inner) -->
+    <path fill="#757575" d="M15.5,6.5h2c0.28,0 0.5,0.22 0.5,0.5v10c0,0.28 -0.22,0.5 -0.5,0.5h-2c-0.28,0 -0.5,-0.22 -0.5,-0.5v-10c0,-0.28 0.22,-0.5 0.5,-0.5z"/>
+    <!-- Far left outer plate -->
+    <path fill="#757575" d="M4,8h1.5c0.28,0 0.5,0.22 0.5,0.5v7c0,0.28 -0.22,0.5 -0.5,0.5H4c-0.28,0 -0.5,-0.22 -0.5,-0.5v-7c0,-0.28 0.22,-0.5 0.5,-0.5z"/>
+    <!-- Far right outer plate -->
+    <path fill="#757575" d="M18.5,8h1.5c0.28,0 0.5,0.22 0.5,0.5v7c0,0.28 -0.22,0.5 -0.5,0.5h-1.5c-0.28,0 -0.5,-0.22 -0.5,-0.5v-7c0,-0.28 0.22,-0.5 0.5,-0.5z"/>
+  </g>
+</svg>
