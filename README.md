@@ -11,6 +11,7 @@ O intuito do aplicativo é ser de código livre para que qualquer pessoa possa a
 
 
 - *Ícone para o aplicativo.* ✅
+- *Colocar aplicativo na Play Store.* ❌
 - *Colocar idiomas Português/Inglês.* ❌
 - *Aba de configurações nos três pontinhos.* ✅
 - *Função de copiar uma ficha existente para uma nova.* ✅
