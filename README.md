@@ -36,13 +36,6 @@ O intuito do aplicativo é ser de código livre para que qualquer pessoa possa a
 
 # Imagens
 
-<p align="center">
-  <img width="30%" alt="image" src="https://github.com/user-attachments/assets/2fa6e798-28a8-4a9a-a19a-aa47d6725703" />
-  <img width="30%" alt="image" src="https://github.com/user-attachments/assets/6616a060-cc03-4159-8b68-cff004a77b97" />
-  <img width="30%" alt="image" src="https://github.com/user-attachments/assets/6c4cd6e3-98d2-404a-9ecb-cb76a91c5a14" />
-</p>
-
-
 
 <p align="center">
   <img width="30%" alt="image" src="https://github.com/user-attachments/assets/1edf31be-32fb-4253-b281-7a3354278b5b" />
