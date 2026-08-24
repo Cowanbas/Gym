@@ -24,7 +24,7 @@ O intuito do aplicativo é ser de código livre para que qualquer pessoa possa a
 # Supostas próximas correções
 
 - *Correções ortográficas.*  ✅
-- *Atualizar altura do rodapé.* ❌
+- *Atualizar altura do rodapé/cabeçalho.* ❌
 - *Gráfico de constância dcomeçar de baixo para cima.* ✅
 - *Corrigir opção de colocar dois números 01,02,03...* ✅
 - *Correção do tamanho dos textos nas caixas de botões.* ✅
