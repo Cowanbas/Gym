@@ -9,6 +9,8 @@ O intuito do aplicativo é ser de código livre para que qualquer pessoa possa a
 
 # Features que serão adicionadas.
 
+- *Para adicionar mais de uma ficha a pessoa terá que pagar R$ 2,00.*
+- *O aplicativo só vai vim com uma ficha adicionada.* ❌
 - *Trocar o nome do aplicativo para Gymin.* ❌
 - *Adicionar link do github na aba de configurações.* ❌
 - *Adicionar termos  usos na aba configurações.* ❌
