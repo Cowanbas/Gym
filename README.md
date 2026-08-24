@@ -9,7 +9,7 @@ O intuito do aplicativo é ser de código livre para que qualquer pessoa possa a
 
 # Features que serão adicionadas.
 
-- *Adicionar link do projeto na aba de configurações.* ❌
+- *Adicionar link do github na aba de configurações.* ❌
 - *Adicionar termos  usos na aba configurações.* ❌
 - *Ícone para o aplicativo.* ✅
 - *Colocar aplicativo na Play Store.* ❌
