@@ -9,7 +9,8 @@ O intuito do aplicativo é ser de código livre para que qualquer pessoa possa a
 
 # Features que serão adicionadas.
 
-
+- *Adicionar link do projeto na aba de configurações.* ❌
+- *Adicionar termos  usos na aba configurações.* ❌
 - *Ícone para o aplicativo.* ✅
 - *Colocar aplicativo na Play Store.* ❌
 - *Colocar idiomas Português/Inglês.* ❌
@@ -25,7 +26,7 @@ O intuito do aplicativo é ser de código livre para que qualquer pessoa possa a
 
 - *Correções ortográficas.*  ✅
 - *Atualizar altura do cabeçalho/rodapé.* ❌
-- *Gráfico de constância dcomeçar de baixo para cima.* ✅
+- *Gráfico de constância começar de baixo para cima.* ✅
 - *Corrigir opção de colocar dois números 01,02,03...* ✅
 - *Correção do tamanho dos textos nas caixas de botões.* ✅
 - *Correção dos textos na aba das fichas.*  ✅
