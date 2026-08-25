@@ -9,13 +9,20 @@ O intuito do aplicativo é ser de código livre para que qualquer pessoa possa a
 
 # Features que serão adicionadas.
 
-- *Na aba configurações vai ter um nome escrito "Termos de USo".* ❌
-- *Primeira vez que iniciar o aplicativo o usuário tera que aceitar o EULA.* ❌
-- *Para adicionar mais de uma ficha a pessoa terá que pagar R$ 2,00.* ❌
-- *Adicionar termos  usos na aba configurações.* ❌
+*Ultimas prováveis*
 - *Colocar aplicativo na Play Store.* ❌
 - *Colocar idiomas Português/Inglês.* ❌
+  
 - *Nova aba para dividir as repetições com pesos diferentes.* ❌
+
+*Adicionar os termos e usos do aplicativo.*
+  
+- *Adicionar termos e usos na aba configurações.* ❌
+- *Primeira vez que iniciar o aplicativo o usuário vai ter que aceitar o EULA.* ❌
+
+  
+- *Para adicionar mais de uma ficha a pessoa terá que pagar R$ 2,00.* ❌
+  
 
 # Supostas próximas correções
 
