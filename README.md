@@ -15,12 +15,11 @@ O intuito do aplicativo é ser de código livre para que qualquer pessoa possa a
 - *Adicionar termos  usos na aba configurações.* ❌
 - *Colocar aplicativo na Play Store.* ❌
 - *Colocar idiomas Português/Inglês.* ❌
-
 - *Nova aba para dividir as repetições com pesos diferentes.* ❌
 
 # Supostas próximas correções
 
-- *Atualizar altura do cabeçalho/rodapé.* ❌
+
 
 # Imagens
 
