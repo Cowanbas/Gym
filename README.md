@@ -13,7 +13,6 @@ O intuito do aplicativo é ser de código livre para que qualquer pessoa possa a
 - *Colocar idiomas Português/Inglês.* ❌
   
 - *Nova aba para dividir as repetições com pesos diferentes.* ❌
-- *Para adicionar mais de uma ficha a pessoa terá que pagar R$ 2,00.* ❌
   
 
 # Supostas próximas correções
