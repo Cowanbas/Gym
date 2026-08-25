@@ -1,4 +1,4 @@
-package com.cowanbas.gymin
+package com.example.gym
 
 import android.content.Context
 import android.os.Bundle

@@ -12,9 +12,7 @@ O intuito do aplicativo é ser de código livre para que qualquer pessoa possa a
 - *Na aba configurações vai ter um nome escrito "Termos de USo".* ❌
 - *Primeira vez que iniciar o aplicativo o usuário tera que aceitar o EULA.* ❌
 - *Para adicionar mais de uma ficha a pessoa terá que pagar R$ 2,00.* ❌
-- *O aplicativo só vai vim com uma ficha adicionada.* ❌
-- *Trocar o nome do aplicativo para Gymin (com.cowanbas.gymin).* ❌
-- *Adicionar link do github na aba de configurações.* ❌
+- *Trocar o nome do aplicativo para Gymin (com.cowanbas.gymin).* ✅
 - *Adicionar termos  usos na aba configurações.* ❌
 - *Ícone para o aplicativo.* ✅
 - *Colocar aplicativo na Play Store.* ❌
