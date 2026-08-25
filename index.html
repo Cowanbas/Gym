@@ -64,20 +64,26 @@
             margin: 40px 0;
         }
 
-        .image-gallery {
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-            align-items: center;
-            margin-top: 20px;
+        .image-center {
+            text-align: center;
+            margin: 15px 0;
         }
 
-        .image-gallery img {
-            max-width: 100%;
+        .image-center img {
+            width: 30%;
+            max-width: 200px;
             height: auto;
-            border-radius: 8px;
+            border-radius: 6px;
             border: 1px solid #333;
+            margin: 0 5px;
             box-shadow: 0 4px 8px rgba(0,0,0,0.5);
+        }
+
+        .slogan {
+            text-align: center;
+            font-style: italic;
+            color: #aaa;
+            margin-top: 20px;
         }
 
         .legal-text {
@@ -100,9 +106,8 @@
 <body>
 
     <div class="container">
-
         <div id="about-section">
-            <h1>Gym - Aplicativo de Ficha de Treino</h1>
+            <h1>Gym Aplicativo de Ficha de Treino</h1>
             
             <h2>Sobre</h2>
             <p>Aplicativo para guardar fichas de treino e marcar a constância dos dias treinados com design minimalista. Desenvolvi esse aplicativo durante os meus dias frequentando a academia, anteriormente, eu estava utilizando o calendário, porém queria algo mais simples e dinâmico.</p>
@@ -130,16 +135,25 @@
             </ul>
 
             <h2>Supostas próximas correções</h2>
-            
+            <ul>
+                <li>Conferir...</li>
+            </ul>
+
             <h2>Imagens</h2>
-            <div class="image-gallery">
-                <img src="Imagens/organizacao.png" alt="organizacao" onerror="this.style.display='none'">
-                <img src="Imagens/ordem.png" alt="ordem" onerror="this.style.display='none'">
-                <img src="Imagens/series.png" alt="series" onerror="this.style.display='none'">
-                <img src="Imagens/criacao.png" alt="criacao" onerror="this.style.display='none'">
-                <img src="Imagens/evolucao.png" alt="evolucao" onerror="this.style.display='none'">
-                <img src="Imagens/registro.png" alt="registro" onerror="this.style.display='none'">
+            
+            <div class="image-center">
+                <img alt="image" src="https://github.com/user-attachments/assets/1edf31be-32fb-4253-b281-7a3354278b5b" />
+                <img alt="image" src="https://github.com/user-attachments/assets/31266f66-d46e-4866-b305-ea47108b312b" />
+                <img alt="image" src="https://github.com/user-attachments/assets/77339ce6-62fb-4217-b605-60ed75cb6ecb" />
             </div>
+
+            <div class="image-center">
+                <img alt="image" src="https://github.com/user-attachments/assets/928b83de-9e3d-4b6a-a783-7e4436bcc8f2" />
+                <img alt="image" src="https://github.com/user-attachments/assets/b8c312a4-9beb-4102-b13a-27852d35d660" />
+                <img alt="image" src="https://github.com/user-attachments/assets/67fc104f-d9cc-4629-a39d-db2cfd854779" />
+            </div>
+
+            <p class="slogan">Sua ficha, sua rotina, sua disciplina, sua liberdade!!</p>
         </div>
 
         <hr> 
@@ -180,14 +194,14 @@
         <hr>
 
         <div id="privacy-section" class="legal-text">
-            <h1>Política de Privacidade para Gymin</h1>
+            <h1>Política de Privacidade para Gym</h1>
             
             <p><strong>Data de Vigência:</strong> 24 de Agosto de 2026</p>
 
-            <p>A Gymin ("nós", "nosso" ou "nos") respeita a sua privacidade. Esta Política de Privacidade explica como lidamos com as informações no aplicativo móvel <strong>Gymin</strong>.</p>
+            <p>A Gym ("nós", "nosso" ou "nos") respeita a sua privacidade. Esta Política de Privacidade explica como lidamos com as informações no aplicativo móvel <strong>Gym</strong>.</p>
 
             <h3>1. Não Coleta de Dados Pessoais</h3>
-            <p>O aplicativo Gymin foi projetado para funcionar de forma totalmente autônoma e local no seu dispositivo. <strong>Nós não coletamos, armazenamos, compartilhamos ou processamos nenhum tipo de dado pessoal ou de uso</strong> dos nossos usuários.</p>
+            <p>O aplicativo Gym foi projetado para funcionar de forma totalmente autônoma e local no seu dispositivo. <strong>Nós não coletamos, armazenamos, compartilhamos ou processamos nenhum tipo de dado pessoal ou de uso</strong> dos nossos usuários.</p>
             <ul>
                 <li><strong>Armazenamento Local:</strong> Todas as fichas de treino, configurações e registros de constância criados por você são salvos exclusivamente no armazenamento interno do seu próprio aparelho. Nós não temos acesso a essas informações.</li>
                 <li><strong>Sem Rastreamento ou Terceiros:</strong> O aplicativo não utiliza ferramentas de análise (analytics), redes de anúncios, SDKs de terceiros ou serviços de rastreamento. Nenhuma informação é enviada para servidores externos.</li>
