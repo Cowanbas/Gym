@@ -17,7 +17,7 @@ O intuito do aplicativo é ser de código livre para que qualquer pessoa possa a
 
 # Supostas próximas correções
 
-- *Testando...*
+- *Corrigi tamanho do rodapé.* ❌
 
 
 # Imagens
