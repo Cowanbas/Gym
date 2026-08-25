@@ -5,7 +5,7 @@ O aplicativo inclui a função de criar fichas de treino (com os exercícios de 
 
 O treino que você marca como executado no dia atual será registrado no calendário. O treino do dia será marcado e só poderá ser alterado na aba do calendário. Um exemplo é se, no treino de quinta-feira, você marcar que foi executado com a ficha A e depois alterar para a ficha B (cujos treinos são outros): mesmo com essa alteração, no calendário ficará registrado o da ficha A que você marcou originalmente.
 
-O intuito do aplicativo é ser de código livre para que qualquer pessoa possa alterar o que quiser, seguindo uma base minimalista, simples e fácil de utilizar. Ele foi pensado para os usuários que já sabem montar ou já têm uma ficha de treino, porém se cansaram de aplicativos complicados de academia.
+O intuito do aplicativo é ser simples e leve para que qualquer pessoa possa utilizar o aplicativo da maneira que quiser, seguindo uma base minimalista, simples e fácil de utilizar. Ele foi pensado para os usuários que já sabem montar ou já têm uma ficha de treino, porém se cansaram de aplicativos complicados de academia.
 
 # Features que serão adicionadas.
 
