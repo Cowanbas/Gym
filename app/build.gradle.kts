@@ -4,11 +4,11 @@ plugins {
 }
 
 android {
-    namespace = "com.example.gym"
+    namespace = "com.cowanbas.gymin"
     compileSdk = 37
 
     defaultConfig {
-        applicationId = "com.example.gym"
+        applicationId = "com.cowanbas.gymin"
         minSdk = 26
         targetSdk = 37
         versionCode = 1
