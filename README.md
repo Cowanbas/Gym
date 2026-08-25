@@ -20,6 +20,7 @@ A maneira mais justa que encontrei de monetizar o aplicativo foi adicionar um si
 
 # Supostas próximas correções
 
+- *Otimização de código mais ampla.* ❌
 - *Corrigi tamanho do rodapé.* ❌
 
 
