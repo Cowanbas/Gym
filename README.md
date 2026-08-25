@@ -19,7 +19,6 @@ A maneira mais justa que encontrei de monetizar o aplicativo foi adicionar um si
 
 # Supostas próximas correções
 
-- *dicionar todos os direitos reservados @Cowanbas.* ❌
 - *Otimização mais ampla do código.* ❌ 
 - *Corrigi tamanho do rodapé.* ❌
 

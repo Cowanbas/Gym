@@ -1016,6 +1016,20 @@ fun SettingsModal(onDismiss: () -> Unit) {
                     Icon(Icons.Default.ChevronRight, null, tint = AppTheme.muted, modifier = Modifier.size(16.dp))
                 }
             }
+
+            Spacer(Modifier.weight(1f))
+
+            Box(
+                modifier = Modifier.fillMaxWidth(),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = "© Cowanbas. All rights reserved.",
+                    fontSize = 11.sp,
+                    color = AppTheme.muted,
+                    textAlign = TextAlign.Center
+                )
+            }
         }
     }
 }
