@@ -12,30 +12,15 @@ O intuito do aplicativo é ser de código livre para que qualquer pessoa possa a
 - *Na aba configurações vai ter um nome escrito "Termos de USo".* ❌
 - *Primeira vez que iniciar o aplicativo o usuário tera que aceitar o EULA.* ❌
 - *Para adicionar mais de uma ficha a pessoa terá que pagar R$ 2,00.* ❌
-- *Trocar o nome do aplicativo para Gymin (com.cowanbas.gym).* ✅
 - *Adicionar termos  usos na aba configurações.* ❌
-- *Ícone para o aplicativo.* ✅
 - *Colocar aplicativo na Play Store.* ❌
 - *Colocar idiomas Português/Inglês.* ❌
-- *Aba de configurações nos três pontinhos.* ✅
-- *Função de copiar uma ficha existente para uma nova.* ✅
+
 - *Nova aba para dividir as repetições com pesos diferentes.* ❌
-- *Sábados e Domingos não vão mais interromper a sequência.* ✅
-- *Treinos aos Sábados e Domingos irão contar na sequência.* ✅
-- *Função de exportar e importar as fichas de treino e o calendário.* ✅
-- *Nova aba com um cronômetro para marcar o tempo de descanso.* ✅
 
 # Supostas próximas correções
 
-- *Correções ortográficas.*  ✅
 - *Atualizar altura do cabeçalho/rodapé.* ❌
-- *Gráfico de constância começar de baixo para cima.* ✅
-- *Corrigir opção de colocar dois números 01,02,03...* ✅
-- *Correção do tamanho dos textos nas caixas de botões.* ✅
-- *Correção dos textos na aba das fichas.*  ✅
-- *Iniciais maiusculas em todos as caixas de mensagem.* ✅
-- *Quantidade de séries e repetições irão começar zerados.* ✅
-
 
 # Imagens
 
