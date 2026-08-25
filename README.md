@@ -13,8 +13,7 @@ A maneira mais justa que encontrei de monetizar o aplicativo foi adicionar um si
 
 # Features que serão adicionadas.
 
-- *Colocar aplicativo na Play Store.* ❌
-- *Colocar idiomas Português.* ❌
+- *Colocar idioma Português.* ❌
 - *Nova aba para dividir as repetições com pesos diferentes.* ❌
   
 
