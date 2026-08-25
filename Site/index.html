@@ -58,28 +58,27 @@
             margin: 40px 0;
         }
 
+        .image-gallery {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            align-items: center;
+            margin-top: 20px;
+        }
+
+        .image-gallery img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+            border: 1px solid #333;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.5);
+        }
+
         footer {
             font-size: 0.9em;
             color: #888;
             text-align: center;
             padding-bottom: 20px;
-        }
-        
-        .back-to-top {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            background-color: #333;
-            color: #fff;
-            padding: 10px 15px;
-            border-radius: 5px;
-            text-decoration: none;
-            opacity: 0.7;
-            transition: opacity 0.3s;
-        }
-        
-        .back-to-top:hover {
-            opacity: 1;
         }
     </style>
 </head>
@@ -117,7 +116,14 @@
             <h2>Supostas próximas correções</h2>
             
             <h2>Imagens</h2>
-            <p><em>(As imagens originais não são carregadas aqui, mas você pode vê-las no repositório do GitHub)</em></p>
+            <div class="image-gallery">
+                <img src="Imagens/organizacao.png" alt="organizacao" onerror="this.style.display='none'">
+                <img src="Imagens/ordem.png" alt="ordem" onerror="this.style.display='none'">
+                <img src="Imagens/series.png" alt="series" onerror="this.style.display='none'">
+                <img src="Imagens/criacao.png" alt="criacao" onerror="this.style.display='none'">
+                <img src="Imagens/evolucao.png" alt="evolucao" onerror="this.style.display='none'">
+                <img src="Imagens/registro.png" alt="registro" onerror="this.style.display='none'">
+            </div>
         </div>
 
         <hr> 
@@ -142,7 +148,7 @@
             <p>Valorizamos a sua confiança em nos fornecer suas Informações Pessoais, portanto, nos esforçamos para usar meios comercialmente aceitáveis de protegê-las. Lembre-se, no entanto, de que nenhum método de transmissão pela internet ou método de armazenamento eletrônico é 100% seguro e confiável, e não podemos garantir sua segurança absoluta.</p>
 
             <h3>3. Privacidade de Crianças</h3>
-            <p>Estes Serviços não se dirigem a menores de 13 anos. Não coletamos conscientemente informações de identificação pessoal de crianças menores de 13 anos. Caso descubramos que uma criança menor de 13 anos nos forneceu informações pessoais, as excluíremos imediatamente de nossos servidores. Se você for um pai ou responsável e souber que seu filho nos forneceu informações pessoais, entre em contato conosco para que possamos tomar as providências necessárias.</p>
+            <p>Estes Serviços não se dirigem a menores de 13 anos. Não coletamos conscientemente informações de identificação pessoal de crianças menores de 13 anos. Caso descubramos que uma criança menor de 13 anos nos forneceu informações pessoais, as excluiremos imediatamente de nossos servidores. Se você for um pai ou responsável e souber que seu filho nos forneceu informações pessoais, entre em contato conosco para que possamos tomar as providências necessárias.</p>
 
             <h3>4. Alterações a Esta Política de Privacidade</h3>
             <p>Podemos atualizar nossa Política de Privacidade periodicamente. Portanto, é recomendável que você revise esta página regularmente para verificar quaisquer alterações. Notificaremos você sobre quaisquer alterações publicando a nova Política de Privacidade nesta página.</p>
@@ -157,8 +163,6 @@
         <p>&copy; 2026 Cowanbas. Aplicativo para guardar fichas de treino.</p>
         <p><a href="https://github.com/cowanbas/Gym/" style="color: #888;">Ver código fonte no GitHub</a></p>
     </footer>
-    
-    <a href="#top" class="back-to-top">Topo</a>
 
 </body>
 </html>
