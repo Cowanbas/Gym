@@ -43,20 +43,20 @@ A maneira mais justa que encontrei de monetizar o aplicativo foi adicionar um si
 *Sua ficha, sua rotina, sua disciplina, sua liberdade!!*
 
 ```mermaid
-graph LR
-    A["INICIAL: ESCOLHA DO MODO<br/>Manual ou Predefinições"]
+graph TD
+    A["PASSO INICIAL: A ESCOLHA DO MODO<br/>Implementação de opção de criação<br/>Escolha se deseja fazer de forma MANUAL ou com PREDEFINIÇÕES."]
     
-    B["CAMINHO MANUAL<br/>Criação do zero"]
+    B["CAMINHO DA ESQUERDA (MANUAL)<br/>Criação atual de templates<br/>O usuário monta a estrutura do zero de forma personalizada."]
     
-    C["PREDEFINIÇÕES<br/>Escolha do dia"]
+    C["CAMINHO DA DIREITA (PREDEFINIÇÕES)<br/>Escolha do Dia<br/>O usuário seleciona o dia da semana correspondente ao treino."]
     
-    D["Seleção de Treinos<br/>Grupos musculares"]
+    D["Seleção dos Treinos do Dia<br/>Botões interativos para os grupos musculares: Peito | Ombro | Tríceps | Perna | Costas | Bíceps.<br/>Recurso: Botão para visualizar os exercícios de cada grupo antes de adicionar."]
     
-    E["Visualização<br/>Ver exercícios"]
+    E["Visualização dos Exercícios<br/>Ao clicar no grupo muscular, aparecem os nomes e os exercícios."]
     
-    F["Implementação<br/>Salvar na ficha"]
+    F["Implementação na Ficha<br/>Ao escolher um exercício, ele é automaticamente implementado na ficha."]
     
-    G["Retorno<br/>Mudar de grupo"]
+    G["Retorno e Flexibilidade<br/>O usuário pode voltar facilmente e escolher outro exercício de um novo grupo muscular para continuar montando o treino."]
 
     A --> B
     A --> C
