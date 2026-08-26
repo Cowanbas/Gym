@@ -48,7 +48,7 @@ graph TD
     
     B["IMPLANTAÇÃO MANUAL<br/>Criação atual de templates<br/>O usuário monta a estrutura do zero de forma personalizada."]
     
-    C["PREDEFINIÇÕES"<br/>Escolha do Dia<br/>O usuário seleciona o dia da semana correspondente ao treino."]
+    C["PREDEFINIÇÕES<br/>Escolha do Dia<br/>O usuário seleciona o dia da semana correspondente ao treino."]
     
     D["Seleção dos Treinos do Dia<br/>Botões interativos para os grupos musculares: Peito | Ombro | Tríceps | Perna | Costas | Bíceps.<br/>Recurso: Botão para visualizar os exercícios de cada grupo antes de adicionar."]
     
