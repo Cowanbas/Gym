@@ -14,7 +14,7 @@ A maneira mais justa que encontrei de monetizar o aplicativo foi adicionar um si
 # Features que serão adicionadas.
 
 - *Opção de exercícios pre definidos dividido por grupos musculares para otimizar o processo de criação da ficha.* ❌
-<img width="1600" height="893" alt="image" src="https://github.com/user-attachments/assets/98b7c64c-48a2-4968-ab81-9357c3a16368" />
+*Clicar em "+add" > Aba com os grupo musculares > cada aba tem uma lista de exercicio > vc escolhe qual exercicio > e adicionado o nome dele na ficha padronizado.*
  
 - *Nova aba para dividir as repetições com pesos diferentes.* ❌
 - *Colocar idioma Português.* ❌
