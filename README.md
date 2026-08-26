@@ -41,27 +41,3 @@ A maneira mais justa que encontrei de monetizar o aplicativo foi adicionar um si
 </p>
 
 *Sua ficha, sua rotina, sua disciplina, sua liberdade!!*
-
-```mermaid
-graph TD
-    A["PASSO INICIAL: A ESCOLHA DO MODO<br/>Implementação de opção de criação<br/>Escolha se deseja fazer de forma MANUAL ou com PREDEFINIÇÕES."]
-    
-    B["IMPLANTAÇÃO MANUAL<br/>Criação atual de templates<br/>O usuário monta a estrutura do zero de forma personalizada."]
-    
-    C["PREDEFINIÇÕES<br/>Escolha do Dia<br/>O usuário seleciona o dia da semana correspondente ao treino."]
-    
-    D["Seleção dos Treinos do Dia<br/>Botões interativos para os grupos musculares: Peito | Ombro | Tríceps | Perna | Costas | Bíceps.<br/>Recurso: Botão para visualizar os exercícios de cada grupo antes de adicionar."]
-    
-    E["Visualização dos Exercícios<br/>Ao clicar no grupo muscular, aparecem os nomes e os exercícios."]
-    
-    F["Implementação na Ficha<br/>Ao escolher um exercício, ele é automaticamente implementado na ficha."]
-    
-    G["Retorno e Flexibilidade<br/>O usuário pode voltar facilmente e escolher outro exercício de um novo grupo muscular para continuar montando o treino."]
-
-    A --> B
-    A --> C
-    C --> D
-    D --> E
-    E --> F
-    F --> G
-    G --> E
