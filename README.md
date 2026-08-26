@@ -46,7 +46,7 @@ A maneira mais justa que encontrei de monetizar o aplicativo foi adicionar um si
 graph TD
     A["PASSO INICIAL: A ESCOLHA DO MODO<br/>Implementação de opção de criação<br/>Escolha se deseja fazer de forma MANUAL ou com PREDEFINIÇÕES."]
     
-    B["CAMINHO DA ESQUERDA (MANUAL)<br/>📄 Criação atual de templates<br/>O usuário monta a estrutura do zero de forma personalizada."]
+    B["CAMINHO DA ESQUERDA (MANUAL)<br/>Criação atual de templates<br/>O usuário monta a estrutura do zero de forma personalizada."]
     
     C["CAMINHO DA DIREITA (PREDEFINIÇÕES)<br/>Escolha do Dia<br/>O usuário seleciona o dia da semana correspondente ao treino."]
     
@@ -58,7 +58,7 @@ graph TD
     
     G["Retorno e Flexibilidade<br/>O usuário pode voltar facilmente e escolher outro exercício de um novo grupo muscular para continuar montando o treino."]
 
-    A -->|2. RAMIFICAÇÃO DAS ESCOLHAS| B
+    A --> B
     A --> C
     C --> D
     D --> E
