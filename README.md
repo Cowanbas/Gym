@@ -40,39 +40,28 @@ A maneira mais justa que encontrei de monetizar o aplicativo foi adicionar um si
   <img width="30%" alt="image" src="https://github.com/user-attachments/assets/67fc104f-d9cc-4629-a39d-db2cfd854779" />
 </p>
 
+*Sua ficha, sua rotina, sua disciplina, sua liberdade!!*
+
 ```mermaid
 graph TD
-    classDef default fill:#e2e2e2,stroke:#333,stroke-width:1.5px,color:#000,font-family:sans-serif;
+    A["PASSO INICIAL: A ESCOLHA DO MODO<br/>Implementação de opção de criação<br/>Escolha se deseja fazer de forma MANUAL ou com PREDEFINIÇÕES."]
+    
+    B["CAMINHO DA ESQUERDA (MANUAL)<br/>📄 Criação atual de templates<br/>O usuário monta a estrutura do zero de forma personalizada."]
+    
+    C["CAMINHO DA DIREITA (PREDEFINIÇÕES)<br/>Escolha do Dia<br/>O usuário seleciona o dia da semana correspondente ao treino."]
+    
+    D["Seleção dos Treinos do Dia<br/>Botões interativos para os grupos musculares: Peito | Ombro | Tríceps | Perna | Costas | Bíceps.<br/>Recurso: Botão para visualizar os exercícios de cada grupo antes de adicionar."]
+    
+    E["Visualização dos Exercícios<br/>Ao clicar no grupo muscular, aparecem os nomes e os exercícios."]
+    
+    F["Implementação na Ficha<br/>Ao escolher um exercício, ele é automaticamente implementado na ficha."]
+    
+    G["Retorno e Flexibilidade<br/>O usuário pode voltar facilmente e escolher outro exercício de um novo grupo muscular para continuar montando o treino."]
 
-    A["<b>PASSO INICIAL: A ESCOLHA DO MODO</b><br/>Implementação de opção de criação<br/>Escolha se deseja fazer de forma MANUAL ou com PREDEFINIÇÕES."]
-    
-    B["<b>CAMINHO DA ESQUERDA (MANUAL)</b><br/>📄 Criação atual de templates<br/>O usuário monta a estrutura do zero de forma personalizada."]
-    
-    C["<b>CAMINHO DA DIREITA (PREDEFINIÇÕES)</b><br/>Escolha do Dia<br/>O usuário seleciona o dia da semana correspondente ao treino."]
-    
-    D["<b>[ Seleção dos Treinos do Dia ]</b><br/>Botões interativos para os grupos musculares: Peito | Ombro | Tríceps | Perna | Costas | Bíceps.<br/>Recurso: Botão para visualizar os exercícios de cada grupo antes de adicionar."]
-    
-    E["<b>[ Visualização dos Exercícios ]</b><br/>Ao clicar no grupo muscular, aparecem os nomes e os exercícios."]
-    
-    F["<b>[ Implementação na Ficha ]</b><br/>Ao escolher um exercício, ele é automaticamente implementado na ficha."]
-    
-    G["<b>[ Retorno e Flexibilidade ]</b><br/>O usuário pode voltar facilmente e escolher outro exercício de um novo grupo muscular para continuar montando o treino."]
-
-    A -->|"2. RAMIFICAÇÃO DAS ESCOLHAS"| B
+    A -->|2. RAMIFICAÇÃO DAS ESCOLHAS| B
     A --> C
     C --> D
     D --> E
     E --> F
     F --> G
     G --> E
-
-
-
-
-
-
-
-
-
-
-*Sua ficha, sua rotina, sua disciplina, sua liberdade!!*
