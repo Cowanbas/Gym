@@ -16,7 +16,8 @@ A maneira mais justa que encontrei de monetizar o aplicativo foi adicionar um si
 - *Opção de exercícios pre definidos dividido por grupos musculares para otimizar o processo de criação da ficha.* ❌
   
 *Clicar em "+add" > Aba com os grupo musculares > cada aba tem uma lista de exercicio > vc escolhe qual exercicio > e adicionado o nome dele na ficha padronizado.*
- 
+
+- *Adicionar função Google Play Billing.* ❌
 - *Nova aba para dividir as repetições com pesos diferentes.* ❌
 - *Colocar idioma Português.* ❌
 
