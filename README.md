@@ -13,6 +13,7 @@ A maneira mais justa que encontrei de monetizar o aplicativo foi adicionar um si
 
 # Features que serão adicionadas.
 
+- *Adicionar permissão de faturamento no AndroidManifest.xml.* ❌
 - *Adicionar depedências do Google PLay Billing no build.gradle(app).* ❌
 - *Adicionar função Google Play Billing no código final do aplicativo.* ❌
 - *Nova aba para dividir as repetições com pesos diferentes.* ❌
