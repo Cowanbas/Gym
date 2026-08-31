@@ -13,6 +13,7 @@ A maneira mais justa que encontrei de monetizar o aplicativo foi adicionar um si
 
 # Features que serão adicionadas.
 
+- *Quando clicar nos dias treinados vai mostrar quantos anos meses e dias que você treinou no total.* ❌
 - *Adicionar aba com gráficos do seu peso e progressão de cargas dos exercícios que estão no cálendario.* ❌
 - *Criar divisões na aba de configurações.* ❌
 - *Abrir as configurações escolher se quer Kg ou Lb.* ❌
