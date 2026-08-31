@@ -13,7 +13,8 @@ A maneira mais justa que encontrei de monetizar o aplicativo foi adicionar um si
 
 # Features que serão adicionadas.
 
-- *Primeira vez que abrir o aplicativo escolher se quer Kg ou Lb.* ❌
+- *Criar divisões na aba de configurações.* ❌
+- *Abrir as configurações escolher se quer Kg ou Lb.* ❌
 - *Sempre que a semana reiniciar as cargas zeram.* ❌
 - *Adicionar opção de tema claro.* ❌
 - *Nova aba para dividir as repetições com pesos diferentes.* ❌
