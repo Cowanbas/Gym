@@ -15,16 +15,16 @@ A maneira mais justa que encontrei de monetizar o aplicativo foi adicionar um si
 
 - *Quando clicar nos dias treinados vai mostrar quantos anos meses e dias que você treinou no total.* ❌
 - *Adicionar aba com gráficos do seu peso e progressão de cargas dos exercícios que estão no cálendario.* ❌
-- *Criar divisões na aba de configurações.* ❌
-- *Abrir as configurações escolher se quer Kg ou Lb.* ❌
+- *Criar divisões na aba de configurações.* ✅
+- *Abrir as configurações escolher se quer Kg ou Lb.* ✅
 - *Sempre que a semana reiniciar as cargas zeram.* ❌
-- *Adicionar opção de tema claro.* ❌
+- *Adicionar opção de tema claro.* ✅
 - *Colocar idioma Português.* ❌
 - *Opção de exercícios pre definidos dividido por grupos musculares para otimizar o processo de criação da ficha.* ❌
 - *Adicionar permissão de faturamento no AndroidManifest.xml.* ❌
 - *Adicionar depedências do Google PLay Billing no build.gradle(app).* ❌
 - *Adicionar função Google Play Billing no código final do aplicativo.* ❌
-- *Nova aba para dividir as repetições com pesos diferentes.* ❌
+- *Nova aba para dividir as repetições com pesos diferentes.* ✅
 
 *Clicar em "+add" > Aba com os grupo musculares > cada aba tem uma lista de exercicio > vc escolhe qual exercicio > e adicionado o nome dele na ficha padronizado.*
 
@@ -33,7 +33,7 @@ A maneira mais justa que encontrei de monetizar o aplicativo foi adicionar um si
 # Supostas próximas correções
 
 - *Otimização mais ampla do código.* ❌ 
-
+- *Repartir o código.* ❌
 
 # Imagens
 
