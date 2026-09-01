@@ -19,19 +19,16 @@ Concluidas:
 - *Abrir as configurações escolher se quer Kg ou Lb.* ✅
 - *Nova aba para dividir as repetições com pesos diferentes.* ✅
 
-
 Próximas:
 - *Sempre que a semana reiniciar as cargas zeram.* ❌
 - *Quando clicar nos dias treinados vai mostrar quantos anos meses e dias que você treinou no total.* ❌
-
+- *Adicionar aba com gráficos do seu peso e progressão de cargas dos exercícios que estão no cálendario.* ❌
 
 Mais para frente:
 - *Colocar idioma Português.* ❌
 - *Adicionar permissão de faturamento no AndroidManifest.xml.* ❌
 - *Adicionar depedências do Google PLay Billing no build.gradle(app).* ❌
 - *Adicionar função Google Play Billing no código final do aplicativo.* ❌
-- *Adicionar aba com gráficos do seu peso e progressão de cargas dos exercícios que estão no cálendario.* ❌
-
 
 - *Opção de exercícios pre definidos dividido por grupos musculares para otimizar o processo de criação da ficha.* ❌
 
