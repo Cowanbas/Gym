@@ -16,6 +16,7 @@ A maneira mais justa que encontrei de monetizar o aplicativo foi adicionar um si
 Concluidas:
 
 Próximas:
+- *Quando na aba de treinos for adicionado treinos e não for salvado a pessoa sair swapando ou clicando no X aparecer um popup do jetpackcompose perguntando se ela não quer salvar.* ❌
 - *Sempre que a semana reiniciar as cargas zeram.* ❌
 - *Quando clicar nos dias treinados vai mostrar quantos anos meses e dias que você treinou no total.* ❌
 
