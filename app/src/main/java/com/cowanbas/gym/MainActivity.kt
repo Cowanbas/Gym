@@ -62,7 +62,6 @@ import java.time.format.TextStyle as JavaTextStyle
 import java.util.Locale
 import kotlin.time.Duration.Companion.milliseconds
 
-val LocalThemeMode = compositionLocalOf { "DARK" }
 val LocalAdvancedMode = compositionLocalOf { false }
 val LocalWeightUnit = compositionLocalOf { "kg" }
 
@@ -77,21 +76,15 @@ class MainActivity : ComponentActivity() {
             val context = LocalContext.current
             val prefs = remember { context.getSharedPreferences("gym_store", Context.MODE_PRIVATE) }
 
-            var themeMode by remember { mutableStateOf(prefs.getString("app_theme", "DARK") ?: "DARK") }
             var advancedMode by remember { mutableStateOf(prefs.getBoolean("advanced_sets", false)) }
             var weightUnit by remember { mutableStateOf(prefs.getString("weight_unit", "kg") ?: "kg") }
 
             CompositionLocalProvider(
-                LocalThemeMode provides themeMode,
                 LocalAdvancedMode provides advancedMode,
                 LocalWeightUnit provides weightUnit
             ) {
                 GymTheme {
                     MainHomeScreen(
-                        onThemeChange = {
-                            themeMode = it
-                            prefs.edit().putString("app_theme", it).apply()
-                        },
                         onAdvancedChange = {
                             advancedMode = it
                             prefs.edit().putBoolean("advanced_sets", it).apply()
@@ -108,28 +101,19 @@ class MainActivity : ComponentActivity() {
 }
 
 object AppTheme {
+    val bg = Color(0xFF161616)
+    val card = Color(0xFF161616)
+    val border = Color(0xFF2B2B2B)
+    val hover = Color(0xFF222222)
+    val text = Color(0xFFFFFFFF)
+    val muted = Color(0xFF9E9E9E)
     val primary = Color(0xFF757575)
-    val finishAccent @Composable get() = if (LocalThemeMode.current == "DARK") Color(0xFF9E9E9E) else Color(0xFF5A5A5E)
-    // Fundo e cards suavizados no modo claro para não ficarem com um branco tão agressivo/estourado
-    val bg @Composable get() = if (LocalThemeMode.current == "DARK") Color(0xFF161616) else Color(0xFFF7F7F9)
-    val card @Composable get() = if (LocalThemeMode.current == "DARK") Color(0xFF161616) else Color(0xFFFFFFFF)
-    val border @Composable get() = if (LocalThemeMode.current == "DARK") Color(0xFF2B2B2B) else Color(0xFFE0E0E6)
-    val hover @Composable get() = if (LocalThemeMode.current == "DARK") Color(0xFF222222) else Color(0xFFEBEBF0)
-    val text @Composable get() = if (LocalThemeMode.current == "DARK") Color(0xFFFFFFFF) else Color(0xFF1C1C1E)
-    val muted @Composable get() = if (LocalThemeMode.current == "DARK") Color(0xFF9E9E9E) else Color(0xFF636366)
 }
 
 @Composable
 fun GymTheme(content: @Composable () -> Unit) {
-    val isDark = LocalThemeMode.current == "DARK"
     MaterialTheme(
-        colorScheme = if (isDark) darkColorScheme(
-            background = AppTheme.bg,
-            surface = AppTheme.card,
-            primary = AppTheme.primary,
-            onBackground = AppTheme.text,
-            onSurface = AppTheme.text
-        ) else lightColorScheme(
+        colorScheme = darkColorScheme(
             background = AppTheme.bg,
             surface = AppTheme.card,
             primary = AppTheme.primary,
@@ -357,7 +341,6 @@ fun routineKeyForDate(date: LocalDate): String = DAY_KEYS[date.dayOfWeek.value -
 
 @Composable
 fun MainHomeScreen(
-    onThemeChange: (String) -> Unit = {},
     onAdvancedChange: (Boolean) -> Unit = {},
     onUnitChange: (String) -> Unit = {}
 ) {
@@ -546,7 +529,6 @@ fun MainHomeScreen(
                                 history.remove(dateKey)
                                 persistHistory()
                             },
-                            onThemeChange = onThemeChange,
                             onAdvancedChange = onAdvancedChange,
                             onUnitChange = onUnitChange
                         )
@@ -641,7 +623,7 @@ fun StopwatchTab(
                         Icon(
                             imageVector = if (isRunning) Icons.Default.Pause else Icons.Default.PlayArrow,
                             contentDescription = if (isRunning) "Pause" else "Start",
-                            tint = if (LocalThemeMode.current == "DARK") AppTheme.text else Color.White,
+                            tint = AppTheme.text,
                             modifier = Modifier.size(36.dp)
                         )
                     }
@@ -661,7 +643,7 @@ fun StopwatchTab(
                             Icon(
                                 imageVector = Icons.Default.Refresh,
                                 contentDescription = "Reset",
-                                tint = AppTheme.muted,
+                                tint = AppTheme.text,
                                 modifier = Modifier.size(28.dp)
                             )
                         }
@@ -688,7 +670,6 @@ fun RoutinesTab(
     onSwapRoutines: (Int, Int) -> Unit,
     onCompleteToday: (String, Routine) -> Unit,
     onDeleteWorkout: (String) -> Unit,
-    onThemeChange: (String) -> Unit,
     onAdvancedChange: (Boolean) -> Unit,
     onUnitChange: (String) -> Unit
 ) {
@@ -730,7 +711,7 @@ fun RoutinesTab(
                             onClick = { menuExpanded = true },
                             modifier = Modifier.size(36.dp)
                         ) {
-                            Icon(Icons.Default.MoreVert, contentDescription = "Menu", tint = AppTheme.muted)
+                            Icon(Icons.Default.MoreVert, contentDescription = "Menu", tint = AppTheme.text)
                         }
                         DropdownMenu(
                             expanded = menuExpanded,
@@ -798,7 +779,7 @@ fun RoutinesTab(
                             day.short.uppercase(),
                             fontSize = 11.sp,
                             fontWeight = FontWeight.Normal,
-                            color = if (isToday) Color.White else AppTheme.muted
+                            color = Color.White
                         )
                     }
                     Spacer(Modifier.width(14.dp))
@@ -892,7 +873,6 @@ fun RoutinesTab(
     if (showSettingsModal) {
         SettingsModal(
             onDismiss = { showSettingsModal = false },
-            onThemeChange = onThemeChange,
             onAdvancedChange = onAdvancedChange,
             onUnitChange = onUnitChange
         )
@@ -971,7 +951,7 @@ fun SegmentedButton(options: List<String>, selected: String, onSelect: (String) 
             ) {
                 Text(
                     opt,
-                    color = if (isSelected) Color.White else AppTheme.text,
+                    color = AppTheme.text,
                     fontSize = 12.sp,
                     fontWeight = FontWeight.Normal
                 )
@@ -984,7 +964,6 @@ fun SegmentedButton(options: List<String>, selected: String, onSelect: (String) 
 @Composable
 fun SettingsModal(
     onDismiss: () -> Unit,
-    onThemeChange: (String) -> Unit,
     onAdvancedChange: (Boolean) -> Unit,
     onUnitChange: (String) -> Unit
 ) {
@@ -1103,7 +1082,7 @@ fun SettingsModal(
                         modifier = Modifier.padding(14.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Icon(Icons.Default.Upload, null, tint = AppTheme.muted, modifier = Modifier.size(20.dp))
+                        Icon(Icons.Default.Upload, null, tint = AppTheme.text, modifier = Modifier.size(20.dp))
                         Spacer(Modifier.width(12.dp))
                         Column(modifier = Modifier.weight(1f)) {
                             Text("Export settings", fontWeight = FontWeight.Normal, fontSize = 13.sp, color = AppTheme.text)
@@ -1128,7 +1107,7 @@ fun SettingsModal(
                         modifier = Modifier.padding(14.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Icon(Icons.Default.Download, null, tint = AppTheme.muted, modifier = Modifier.size(20.dp))
+                        Icon(Icons.Default.Download, null, tint = AppTheme.text, modifier = Modifier.size(20.dp))
                         Spacer(Modifier.width(12.dp))
                         Column(modifier = Modifier.weight(1f)) {
                             Text("Import settings", fontWeight = FontWeight.Normal, fontSize = 13.sp, color = AppTheme.text)
@@ -1136,21 +1115,6 @@ fun SettingsModal(
                         }
                         Icon(Icons.Default.ChevronRight, null, tint = AppTheme.muted, modifier = Modifier.size(16.dp))
                     }
-                }
-                Spacer(Modifier.height(16.dp))
-            }
-
-            item {
-                Text("Appearance", fontSize = 12.sp, fontWeight = FontWeight.Normal, color = AppTheme.muted)
-                Spacer(Modifier.height(8.dp))
-                Text("Theme", fontSize = 14.sp, color = AppTheme.text)
-                Text("Select app visual theme", fontSize = 11.sp, color = AppTheme.muted)
-                Spacer(Modifier.height(6.dp))
-                SegmentedButton(
-                    options = listOf("Dark", "Light"),
-                    selected = if (LocalThemeMode.current == "DARK") "Dark" else "Light"
-                ) {
-                    onThemeChange(if (it == "Dark") "DARK" else "LIGHT")
                 }
                 Spacer(Modifier.height(16.dp))
             }
@@ -1171,8 +1135,10 @@ fun SettingsModal(
                         checked = LocalAdvancedMode.current,
                         onCheckedChange = { onAdvancedChange(it) },
                         colors = SwitchDefaults.colors(
-                            checkedThumbColor = Color.White,
-                            checkedTrackColor = AppTheme.primary
+                            checkedThumbColor = AppTheme.text,
+                            checkedTrackColor = AppTheme.primary,
+                            uncheckedThumbColor = AppTheme.muted,
+                            uncheckedTrackColor = AppTheme.hover
                         )
                     )
                 }
@@ -1415,10 +1381,11 @@ fun CopyTemplateModal(
                     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         Button(
                             onClick = { selectedTemplate = null },
-                            colors = ButtonDefaults.buttonColors(containerColor = AppTheme.primary),
+                            colors = ButtonDefaults.buttonColors(containerColor = AppTheme.hover),
+                            border = BorderStroke(1.dp, AppTheme.border),
                             modifier = Modifier.weight(1f)
                         ) {
-                            Text("Back", color = Color.White, fontWeight = FontWeight.Normal)
+                            Text("Back", color = AppTheme.text)
                         }
                         Button(
                             onClick = {
@@ -1553,12 +1520,13 @@ fun EditTemplateModal(
                     if (canDelete) {
                         Button(
                             onClick = { showDeleteConfirm = true },
-                            colors = ButtonDefaults.buttonColors(containerColor = AppTheme.primary),
+                            colors = ButtonDefaults.buttonColors(containerColor = AppTheme.hover),
+                            border = BorderStroke(1.dp, AppTheme.border),
                             modifier = Modifier.weight(1f)
                         ) {
-                            Icon(Icons.Default.Delete, null, tint = Color.White, modifier = Modifier.size(15.dp))
+                            Icon(Icons.Default.Delete, null, tint = AppTheme.text, modifier = Modifier.size(15.dp))
                             Spacer(Modifier.width(6.dp))
-                            Text("Delete", color = Color.White, fontWeight = FontWeight.Normal)
+                            Text("Delete", color = AppTheme.text)
                         }
                     }
                     Button(
@@ -1911,11 +1879,12 @@ fun LazyItemScope.ExerciseCardItem(
                                 onChanged(exercise.copy(advancedSets = newSets, sets = newSets.size))
                             },
                             modifier = Modifier.fillMaxWidth(),
-                            colors = ButtonDefaults.buttonColors(containerColor = AppTheme.primary)
+                            colors = ButtonDefaults.buttonColors(containerColor = AppTheme.hover),
+                            border = BorderStroke(1.dp, AppTheme.border)
                         ) {
-                            Icon(Icons.Default.Add, null, tint = Color.White, modifier = Modifier.size(15.dp))
+                            Icon(Icons.Default.Add, null, tint = AppTheme.text, modifier = Modifier.size(15.dp))
                             Spacer(Modifier.width(6.dp))
-                            Text("Add series", color = Color.White, fontWeight = FontWeight.Normal)
+                            Text("Add series", color = AppTheme.text, fontWeight = FontWeight.Normal)
                         }
                     }
                 } else {
@@ -2040,9 +2009,9 @@ fun RoutineEditModal(
                         Text("Exercises", fontWeight = FontWeight.Normal, fontSize = 13.sp, color = AppTheme.text)
                     }
                     TextButton(onClick = { exercises.add(Exercise()) }) {
-                        Icon(Icons.Default.Add, null, tint = AppTheme.muted, modifier = Modifier.size(15.dp))
+                        Icon(Icons.Default.Add, null, tint = AppTheme.text, modifier = Modifier.size(15.dp))
                         Spacer(Modifier.width(2.dp))
-                        Text("Add", color = AppTheme.muted, fontSize = 12.sp)
+                        Text("Add", color = AppTheme.text, fontSize = 12.sp)
                     }
                 }
                 HorizontalDivider(color = AppTheme.border)
@@ -2081,12 +2050,15 @@ fun RoutineEditModal(
                         if (isDoneToday) {
                             Button(
                                 onClick = { onUnfinish() },
-                                colors = ButtonDefaults.buttonColors(containerColor = AppTheme.finishAccent),
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = AppTheme.primary
+                                ),
+                                border = BorderStroke(1.dp, AppTheme.border),
                                 modifier = Modifier.weight(1f)
                             ) {
-                                Icon(Icons.Default.Close, null, tint = Color.White, modifier = Modifier.size(15.dp))
+                                Icon(Icons.Default.Close, null, tint = AppTheme.text, modifier = Modifier.size(15.dp))
                                 Spacer(Modifier.width(6.dp))
-                                Text("Unfinish", color = Color.White, fontWeight = FontWeight.Normal)
+                                Text("Unfinish", color = AppTheme.text, fontWeight = FontWeight.Normal)
                             }
                         } else {
                             Button(
@@ -2097,8 +2069,8 @@ fun RoutineEditModal(
                                 },
                                 enabled = hasExercises,
                                 colors = ButtonDefaults.buttonColors(
-                                    containerColor = AppTheme.finishAccent,
-                                    disabledContainerColor = AppTheme.finishAccent.copy(alpha = 0.4f)
+                                    containerColor = AppTheme.primary,
+                                    disabledContainerColor = AppTheme.primary.copy(alpha = 0.4f)
                                 ),
                                 modifier = Modifier.weight(1f)
                             ) {
@@ -2110,12 +2082,13 @@ fun RoutineEditModal(
                     }
                     Button(
                         onClick = { onSave(Routine(title.ifBlank { "Empty" }, exercises.toList())) },
-                        colors = ButtonDefaults.buttonColors(containerColor = AppTheme.primary),
+                        colors = ButtonDefaults.buttonColors(containerColor = AppTheme.hover),
+                        border = BorderStroke(1.dp, AppTheme.border),
                         modifier = Modifier.weight(1f)
                     ) {
-                        Icon(Icons.Default.Save, null, tint = Color.White, modifier = Modifier.size(15.dp))
+                        Icon(Icons.Default.Save, null, tint = AppTheme.text, modifier = Modifier.size(15.dp))
                         Spacer(Modifier.width(6.dp))
-                        Text("Save", color = Color.White, fontWeight = FontWeight.Normal)
+                        Text("Save", color = AppTheme.text)
                     }
                 }
                 Spacer(Modifier.height(32.dp))
@@ -2199,14 +2172,14 @@ fun ConstancyTab(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         IconButton(onClick = { weeklyMonth = weeklyMonth.minusMonths(1) }) {
-                            Icon(Icons.Default.ChevronLeft, "Previous month", tint = AppTheme.muted)
+                            Icon(Icons.Default.ChevronLeft, "Previous month", tint = AppTheme.text)
                         }
                         Text(
                             "${weeklyMonth.month.getDisplayName(JavaTextStyle.FULL, Locale.ENGLISH).uppercase()} ${weeklyMonth.year}",
                             fontWeight = FontWeight.Normal, fontSize = 12.sp, color = AppTheme.text
                         )
                         IconButton(onClick = { weeklyMonth = weeklyMonth.plusMonths(1) }) {
-                            Icon(Icons.Default.ChevronRight, "Next month", tint = AppTheme.muted)
+                            Icon(Icons.Default.ChevronRight, "Next month", tint = AppTheme.text)
                         }
                     }
                     Spacer(Modifier.height(6.dp))
@@ -2229,14 +2202,14 @@ fun ConstancyTab(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         IconButton(onClick = { selectedMonth = selectedMonth.minusMonths(1) }) {
-                            Icon(Icons.Default.ChevronLeft, "Previous month", tint = AppTheme.muted)
+                            Icon(Icons.Default.ChevronLeft, "Previous month", tint = AppTheme.text)
                         }
                         Text(
                             "${selectedMonth.month.getDisplayName(JavaTextStyle.FULL, Locale.ENGLISH).uppercase()} ${selectedMonth.year}",
                             fontWeight = FontWeight.Normal, fontSize = 13.sp, color = AppTheme.text
                         )
                         IconButton(onClick = { selectedMonth = selectedMonth.plusMonths(1) }) {
-                            Icon(Icons.Default.ChevronRight, "Next month", tint = AppTheme.muted)
+                            Icon(Icons.Default.ChevronRight, "Next month", tint = AppTheme.text)
                         }
                     }
                     Spacer(Modifier.height(6.dp))
@@ -2385,7 +2358,7 @@ fun RoutinePickerBottomSheet(
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Row(modifier = Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
-                        Icon(Icons.Default.Today, null, tint = AppTheme.muted, modifier = Modifier.size(20.dp))
+                        Icon(Icons.Default.Today, null, tint = AppTheme.text, modifier = Modifier.size(20.dp))
                         Spacer(Modifier.width(12.dp))
                         Column(modifier = Modifier.weight(1f)) {
                             Text("Default Day Workout", fontWeight = FontWeight.Normal, fontSize = 13.sp, color = AppTheme.text)
@@ -2405,7 +2378,7 @@ fun RoutinePickerBottomSheet(
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Row(modifier = Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
-                        Icon(Icons.Default.Add, null, tint = AppTheme.muted, modifier = Modifier.size(20.dp))
+                        Icon(Icons.Default.Add, null, tint = AppTheme.text, modifier = Modifier.size(20.dp))
                         Spacer(Modifier.width(12.dp))
                         Column(modifier = Modifier.weight(1f)) {
                             Text("Blank Workout", fontWeight = FontWeight.Normal, fontSize = 13.sp, color = AppTheme.text)
@@ -2469,7 +2442,7 @@ fun SectionCard(icon: ImageVector, title: String, content: @Composable ColumnSco
     ) {
         Column(modifier = Modifier.padding(12.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(icon, null, tint = AppTheme.muted, modifier = Modifier.size(15.dp))
+                Icon(icon, null, tint = AppTheme.text, modifier = Modifier.size(15.dp))
                 Spacer(Modifier.width(6.dp))
                 Text(title, fontWeight = FontWeight.Normal, fontSize = 12.sp, color = AppTheme.text)
             }
@@ -2494,7 +2467,7 @@ fun MetricCard(icon: ImageVector, value: String, label: String, modifier: Modifi
                     .border(1.dp, AppTheme.border, RoundedCornerShape(8.dp))
                     .padding(6.dp)
             ) {
-                Icon(icon, null, tint = AppTheme.muted, modifier = Modifier.size(20.dp))
+                Icon(icon, null, tint = AppTheme.text, modifier = Modifier.size(20.dp))
             }
             Spacer(Modifier.width(8.dp))
             Column {
@@ -2627,7 +2600,7 @@ fun WeeklyBarChart(history: Map<String, WorkoutHistory>, monthlyRef: YearMonth) 
                             .width(22.dp)
                             .height((55 * heightPct).dp)
                             .background(
-                                if (isCurrent) AppTheme.primary else AppTheme.hover,
+                                if (isCurrent) AppTheme.primary else AppTheme.muted.copy(alpha = 0.4f),
                                 RoundedCornerShape(4.dp)
                             )
                     )
@@ -2694,12 +2667,8 @@ fun CalendarGrid(
                                 ),
                             contentAlignment = Alignment.Center
                         ) {
-                            Text(
-                                "$dayNum",
-                                fontSize = 11.sp,
-                                fontWeight = FontWeight.Normal,
-                                color = if (hasWorkout) Color.White else AppTheme.muted
-                            )
+                            Text("$dayNum", fontSize = 11.sp, fontWeight = FontWeight.Normal,
+                                color = Color.White)
                         }
                     } else {
                         Spacer(Modifier.weight(1f).aspectRatio(1f))
@@ -2778,7 +2747,7 @@ fun DayDetailCard(
                             ) {
                                 Text(ex.name.ifBlank { "Exercise" }, fontSize = 12.sp, color = AppTheme.text, modifier = Modifier.weight(1f))
                                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.End) {
-                                    Text("${String.format(Locale.US, "%02d", numSets)} sets • $wText", fontSize = 12.sp, color = AppTheme.text)
+                                    Text("${String.format(Locale.US, "%02d", numSets)} sets • $wText", fontSize = 12.sp, color = AppTheme.muted)
                                     Spacer(Modifier.width(8.dp))
                                     Icon(
                                         imageVector = if (expanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
@@ -2821,7 +2790,7 @@ fun DayDetailCard(
                             val wStr = trimNumber(ex.weight)
                             val formattedSets = String.format(Locale.US, "%02d", ex.sets)
                             val formattedReps = String.format(Locale.US, "%02d", ex.reps)
-                            Text("${formattedSets}x${formattedReps} • ${wStr}$unitStr", fontSize = 12.sp, color = AppTheme.text, textAlign = TextAlign.End)
+                            Text("${formattedSets}x${formattedReps} • ${wStr}$unitStr", fontSize = 12.sp, color = AppTheme.muted, textAlign = TextAlign.End)
                         }
                     }
                 }
@@ -2832,21 +2801,23 @@ fun DayDetailCard(
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     Button(
                         onClick = { onEdit(historyItem) },
-                        colors = ButtonDefaults.buttonColors(containerColor = AppTheme.primary),
+                        colors = ButtonDefaults.buttonColors(containerColor = AppTheme.hover),
+                        border = BorderStroke(1.dp, AppTheme.border),
                         modifier = Modifier.weight(1f)
                     ) {
-                        Icon(Icons.Default.Edit, null, tint = Color.White, modifier = Modifier.size(15.dp))
+                        Icon(Icons.Default.Edit, null, tint = AppTheme.text, modifier = Modifier.size(15.dp))
                         Spacer(Modifier.width(6.dp))
-                        Text("Edit", color = Color.White, fontWeight = FontWeight.Normal)
+                        Text("Edit", color = AppTheme.text)
                     }
                     Button(
                         onClick = onDelete,
-                        colors = ButtonDefaults.buttonColors(containerColor = AppTheme.primary),
+                        colors = ButtonDefaults.buttonColors(containerColor = AppTheme.hover),
+                        border = BorderStroke(1.dp, AppTheme.border),
                         modifier = Modifier.weight(1f)
                     ) {
-                        Icon(Icons.Default.Delete, null, tint = Color.White, modifier = Modifier.size(15.dp))
+                        Icon(Icons.Default.Delete, null, tint = AppTheme.text, modifier = Modifier.size(15.dp))
                         Spacer(Modifier.width(6.dp))
-                        Text("Delete", color = Color.White, fontWeight = FontWeight.Normal)
+                        Text("Delete", color = AppTheme.text)
                     }
                 }
             }
@@ -2907,9 +2878,9 @@ fun HistoryEditModal(
                         Text("Exercises", fontWeight = FontWeight.Normal, fontSize = 13.sp, color = AppTheme.text)
                     }
                     TextButton(onClick = { exercises.add(Exercise()) }) {
-                        Icon(Icons.Default.Add, null, tint = AppTheme.muted, modifier = Modifier.size(15.dp))
+                        Icon(Icons.Default.Add, null, tint = AppTheme.text, modifier = Modifier.size(15.dp))
                         Spacer(Modifier.width(2.dp))
-                        Text("Add", color = AppTheme.muted, fontSize = 12.sp)
+                        Text("Add", color = AppTheme.text, fontSize = 12.sp)
                     }
                 }
                 HorizontalDivider(color = AppTheme.border)
@@ -2938,12 +2909,13 @@ fun HistoryEditModal(
                     onClick = {
                         onSave(item.copy(routineTitle = title.ifBlank { "Empty" }, exercises = exercises.toList()))
                     },
-                    colors = ButtonDefaults.buttonColors(containerColor = AppTheme.primary),
-                    modifier = Modifier.weight(1f)
+                    colors = ButtonDefaults.buttonColors(containerColor = AppTheme.hover),
+                    border = BorderStroke(1.dp, AppTheme.border),
+                    modifier = Modifier.fillMaxWidth()
                 ) {
-                    Icon(Icons.Default.Save, null, tint = Color.White, modifier = Modifier.size(15.dp))
+                    Icon(Icons.Default.Save, null, tint = AppTheme.text, modifier = Modifier.size(15.dp))
                     Spacer(Modifier.width(6.dp))
-                    Text("Save record", color = Color.White, fontWeight = FontWeight.Normal)
+                    Text("Save record", color = AppTheme.text, fontWeight = FontWeight.Normal)
                 }
                 Spacer(Modifier.height(32.dp))
             }
