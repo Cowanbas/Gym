@@ -17,7 +17,7 @@ Concluidas:
 
 Próximas:
 
-- *Alterar os toques do botão "Add sets" para o mesmo dos outros botões.* ❌
+- *Padronizar todos os ripple.* ❌
 - *Quando na aba de treinos for adicionado treinos e não for salvado a pessoa sair swapando ou clicando no X aparecer um popup do jetpackcompose perguntando se ela não quer salvar.* ❌
 - *Sempre que a semana reiniciar as cargas zeram.* ❌
 - *Quando clicar nos dias treinados vai mostrar quantos anos meses e dias que você treinou no total.* ❌
