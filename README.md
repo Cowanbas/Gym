@@ -14,9 +14,6 @@ A maneira mais justa que encontrei de monetizar o aplicativo foi adicionar um si
 # Features
 
 Concluidas:
-- *Criar divisões na aba de configurações.* ✅
-- *Abrir as configurações escolher se quer Kg ou Lb.* ✅
-- *Nova aba para dividir as repetições com pesos diferentes.* ✅
 
 Próximas:
 - *Sempre que a semana reiniciar as cargas zeram.* ❌

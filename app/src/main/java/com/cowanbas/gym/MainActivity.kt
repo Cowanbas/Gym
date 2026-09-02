@@ -1049,7 +1049,6 @@ fun SettingsModal(
         LazyColumn(
             modifier = Modifier
                 .fillMaxWidth()
-                .fillMaxHeight(0.7f)
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
@@ -1128,8 +1127,8 @@ fun SettingsModal(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Column(modifier = Modifier.weight(1f)) {
-                        Text("Detailed Set Tracking", fontSize = 14.sp, color = AppTheme.text)
-                        Text("Enable individual reps & weights per set", fontSize = 11.sp, color = AppTheme.muted)
+                        Text("Detailed set tracking", fontSize = 14.sp, color = AppTheme.text)
+                        Text("Enable individual reps and weights per set", fontSize = 11.sp, color = AppTheme.muted)
                     }
                     Switch(
                         checked = LocalAdvancedMode.current,
@@ -1143,7 +1142,7 @@ fun SettingsModal(
                     )
                 }
                 Spacer(Modifier.height(12.dp))
-                Text("Weight Unit", fontSize = 14.sp, color = AppTheme.text)
+                Text("Weight unit", fontSize = 14.sp, color = AppTheme.text)
                 Text("Select unit for exercise weights", fontSize = 11.sp, color = AppTheme.muted)
                 Spacer(Modifier.height(6.dp))
                 SegmentedButton(
@@ -1161,7 +1160,7 @@ fun SettingsModal(
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
-                        text = "© Cowanbas. All rights reserved.",
+                        text = "©Cowanbas all rights reserved.",
                         fontSize = 11.sp,
                         color = AppTheme.muted,
                         textAlign = TextAlign.Center
@@ -1171,7 +1170,6 @@ fun SettingsModal(
         }
     }
 }
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TemplatesBottomSheetModal(
