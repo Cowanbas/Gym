@@ -27,8 +27,8 @@ Mais para frente:
 
 # Supostas próximas otimizações
 
-- *Otimização mais ampla do código.* ❌ 
 - *Repartir o código.* ❌
+- *Otimização mais ampla do código.* ❌ 
 
 # Imagens
 
