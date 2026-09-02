@@ -16,23 +16,14 @@ A maneira mais justa que encontrei de monetizar o aplicativo foi adicionar um si
 Concluidas:
 
 Próximas:
-- *Na aba de calendário no histórico do peso as cargas não podem ficar um número sozinho exemplo 1, 2, 3 ele tem que ficar com um zero na frente automaticamente assim 01, 02, 03 etc*
-
 - *Sempre que a semana reiniciar as cargas zeram.* ❌
 - *Quando clicar nos dias treinados vai mostrar quantos anos meses e dias que você treinou no total.* ❌
-- *Adicionar aba com gráficos do seu peso e progressão de cargas dos exercícios que estão no cálendario.* ❌
 
 Mais para frente:
 - *Colocar idioma Português.* ❌
 - *Adicionar permissão de faturamento no AndroidManifest.xml.* ❌
 - *Adicionar depedências do Google PLay Billing no build.gradle(app).* ❌
 - *Adicionar função Google Play Billing no código final do aplicativo.* ❌
-
-- *Opção de exercícios pre definidos dividido por grupos musculares para otimizar o processo de criação da ficha.* ❌
-
-  
-*Clicar em "+add" > Aba com os grupo musculares > cada aba tem uma lista de exercicio > vc escolhe qual exercicio > e adicionado o nome dele na ficha padronizado.*
-
 
 # Supostas próximas otimizações
 
