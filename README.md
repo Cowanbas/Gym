@@ -16,6 +16,8 @@ A maneira mais justa que encontrei de monetizar o aplicativo foi adicionar um si
 Concluidas:
 
 Próximas:
+- *Na aba de calendário no histórico do peso as cargas não podem ficar um número sozinho exemplo 1, 2, 3 ele tem que ficar com um zero na frente automaticamente assim 01, 02, 03 etc*
+
 - *Sempre que a semana reiniciar as cargas zeram.* ❌
 - *Quando clicar nos dias treinados vai mostrar quantos anos meses e dias que você treinou no total.* ❌
 - *Adicionar aba com gráficos do seu peso e progressão de cargas dos exercícios que estão no cálendario.* ❌
