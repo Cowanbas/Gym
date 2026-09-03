@@ -16,9 +16,10 @@ A maneira mais justa que encontrei de monetizar o aplicativo foi adicionar um si
 Concluidas:
 
 Próximas:
+
+- *Quando na aba de treinos for adicionado treinos e não for salvado a pessoa sair swapando ou clicando no X aparecer um popup do jetpackcompose perguntando se ela não quer salvar.* ❌
 - *Sempre que a semana reiniciar as cargas zeram.* ❌
 - *Quando clicar nos dias treinados vai mostrar quantos anos meses e dias que você treinou no total.* ❌
-- *Adicionar aba com gráficos do seu peso e progressão de cargas dos exercícios que estão no cálendario.* ❌
 
 Mais para frente:
 - *Colocar idioma Português.* ❌
@@ -26,16 +27,10 @@ Mais para frente:
 - *Adicionar depedências do Google PLay Billing no build.gradle(app).* ❌
 - *Adicionar função Google Play Billing no código final do aplicativo.* ❌
 
-- *Opção de exercícios pre definidos dividido por grupos musculares para otimizar o processo de criação da ficha.* ❌
-
-  
-*Clicar em "+add" > Aba com os grupo musculares > cada aba tem uma lista de exercicio > vc escolhe qual exercicio > e adicionado o nome dele na ficha padronizado.*
-
-
 # Supostas próximas otimizações
 
-- *Otimização mais ampla do código.* ❌ 
 - *Repartir o código.* ❌
+- *Otimização mais ampla do código.* ❌ 
 
 # Imagens
 
