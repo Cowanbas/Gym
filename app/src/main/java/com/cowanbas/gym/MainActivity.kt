@@ -1882,7 +1882,7 @@ fun LazyItemScope.ExerciseCardItem(
                         ) {
                             Icon(Icons.Default.Add, null, tint = AppTheme.text, modifier = Modifier.size(15.dp))
                             Spacer(Modifier.width(6.dp))
-                            Text("Add series", color = AppTheme.text, fontWeight = FontWeight.Normal)
+                            Text("Add sets", color = AppTheme.text, fontWeight = FontWeight.Normal)
                         }
                     }
                 } else {
@@ -1903,7 +1903,14 @@ fun LazyItemScope.ExerciseCardItem(
     }
 }
 
-fun trimNumber(v: Double): String = if (v % 1.0 == 0.0) v.toInt().toString() else v.toString()
+fun trimNumber(v: Double): String {
+    return if (v % 1.0 == 0.0) {
+        val intVal = v.toInt()
+        if (intVal in 0..9) String.format(Locale.US, "%02d", intVal) else intVal.toString()
+    } else {
+        v.toString()
+    }
+}
 
 @Composable
 fun NumberInputField(
@@ -2909,11 +2916,11 @@ fun HistoryEditModal(
                     },
                     colors = ButtonDefaults.buttonColors(containerColor = AppTheme.hover),
                     border = BorderStroke(1.dp, AppTheme.border),
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.weight(1f)
                 ) {
                     Icon(Icons.Default.Save, null, tint = AppTheme.text, modifier = Modifier.size(15.dp))
                     Spacer(Modifier.width(6.dp))
-                    Text("Save record", color = AppTheme.text, fontWeight = FontWeight.Normal)
+                    Text("Save", color = AppTheme.text, fontWeight = FontWeight.Normal)
                 }
                 Spacer(Modifier.height(32.dp))
             }
