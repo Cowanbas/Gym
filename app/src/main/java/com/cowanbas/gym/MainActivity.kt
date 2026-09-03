@@ -153,7 +153,7 @@ class MainActivity : ComponentActivity() {
         }
         setContent {
             val context = LocalContext.current
-            val prefs = remember { context.getSharedPreferences("gym_store", Context.MODE_PRIVATE) }
+            val prefs = remember { context.getSharedPreferences("gym_store", MODE_PRIVATE) }
 
             var advancedMode by remember { mutableStateOf(prefs.getBoolean("advanced_sets", false)) }
             var weightUnit by remember { mutableStateOf(prefs.getString("weight_unit", "kg") ?: "kg") }
@@ -1436,7 +1436,10 @@ fun CopyTemplateModal(
                     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         Button(
                             onClick = { selectedTemplate = null },
-                            colors = ButtonDefaults.buttonColors(containerColor = AppTheme.hover),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = AppTheme.hover,
+                                contentColor = AppTheme.text
+                            ),
                             border = BorderStroke(1.dp, AppTheme.border),
                             modifier = Modifier.weight(1f)
                         ) {
@@ -1570,7 +1573,10 @@ fun EditTemplateModal(
                     if (canDelete) {
                         Button(
                             onClick = { showDeleteConfirm = true },
-                            colors = ButtonDefaults.buttonColors(containerColor = AppTheme.hover),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = AppTheme.hover,
+                                contentColor = AppTheme.text
+                            ),
                             border = BorderStroke(1.dp, AppTheme.border),
                             modifier = Modifier.weight(1f)
                         ) {
@@ -1924,7 +1930,10 @@ fun LazyItemScope.ExerciseCardItem(
                                 onChanged(exercise.copy(advancedSets = newSets, sets = newSets.size))
                             },
                             modifier = Modifier.fillMaxWidth(),
-                            colors = ButtonDefaults.buttonColors(containerColor = AppTheme.hover),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = AppTheme.hover,
+                                contentColor = AppTheme.text
+                            ),
                             border = BorderStroke(1.dp, AppTheme.border)
                         ) {
                             Icon(Icons.Default.Add, null, tint = AppTheme.text, modifier = Modifier.size(15.dp))
@@ -2099,7 +2108,10 @@ fun RoutineEditModal(
                         if (isDoneToday) {
                             Button(
                                 onClick = { onUnfinish() },
-                                colors = ButtonDefaults.buttonColors(containerColor = AppTheme.primary),
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = AppTheme.primary,
+                                    contentColor = AppTheme.text
+                                ),
                                 border = BorderStroke(1.dp, AppTheme.border),
                                 modifier = Modifier.weight(1f)
                             ) {
@@ -2117,7 +2129,8 @@ fun RoutineEditModal(
                                 enabled = hasExercises,
                                 colors = ButtonDefaults.buttonColors(
                                     containerColor = AppTheme.primary,
-                                    disabledContainerColor = AppTheme.primary.copy(alpha = 0.4f)
+                                    disabledContainerColor = AppTheme.primary.copy(alpha = 0.4f),
+                                    contentColor = Color.White
                                 ),
                                 modifier = Modifier.weight(1f)
                             ) {
@@ -2129,7 +2142,10 @@ fun RoutineEditModal(
                     }
                     Button(
                         onClick = { onSave(Routine(title.ifBlank { "Empty" }, exercises.toList())) },
-                        colors = ButtonDefaults.buttonColors(containerColor = AppTheme.hover),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = AppTheme.hover,
+                            contentColor = AppTheme.text
+                        ),
                         border = BorderStroke(1.dp, AppTheme.border),
                         modifier = Modifier.weight(1f)
                     ) {
@@ -2813,7 +2829,10 @@ fun DayDetailCard(
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     Button(
                         onClick = { onEdit(historyItem) },
-                        colors = ButtonDefaults.buttonColors(containerColor = AppTheme.hover),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = AppTheme.hover,
+                            contentColor = AppTheme.text
+                        ),
                         border = BorderStroke(1.dp, AppTheme.border),
                         modifier = Modifier.weight(1f)
                     ) {
@@ -2823,7 +2842,10 @@ fun DayDetailCard(
                     }
                     Button(
                         onClick = onDelete,
-                        colors = ButtonDefaults.buttonColors(containerColor = AppTheme.hover),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = AppTheme.hover,
+                            contentColor = AppTheme.text
+                        ),
                         border = BorderStroke(1.dp, AppTheme.border),
                         modifier = Modifier.weight(1f)
                     ) {
@@ -2918,7 +2940,10 @@ fun HistoryEditModal(
                     onClick = {
                         onSave(item.copy(routineTitle = title.ifBlank { "Empty" }, exercises = exercises.toList()))
                     },
-                    colors = ButtonDefaults.buttonColors(containerColor = AppTheme.hover),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = AppTheme.hover,
+                        contentColor = AppTheme.text
+                    ),
                     border = BorderStroke(1.dp, AppTheme.border),
                     modifier = Modifier.weight(1f)
                 ) {
