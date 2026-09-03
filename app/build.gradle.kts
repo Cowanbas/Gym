@@ -49,6 +49,7 @@ dependencies {
     implementation(libs.androidx.compose.material.icons.extended)
     implementation(libs.androidx.activity.compose)
     implementation(libs.kotlinx.coroutines.android)
+    implementation("com.android.billingclient:billing-ktx:7.1.0")
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
