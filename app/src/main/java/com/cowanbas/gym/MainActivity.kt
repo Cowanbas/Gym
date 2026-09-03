@@ -1,5 +1,6 @@
 package com.cowanbas.gym
 
+import android.app.Activity
 import android.content.Context
 import android.os.Bundle
 import android.widget.Toast
@@ -95,12 +96,14 @@ import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateMapOf
@@ -329,6 +332,7 @@ object Store {
     private const val KEY_HISTORY = "history"
     private const val KEY_TEMPLATES = "templates"
     private const val KEY_ACTIVE_TEMPLATE = "active_template"
+    private const val KEY_EXTRA_SLOTS = "extra_slots"
 
     private fun prefs(ctx: Context) = ctx.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
 
@@ -358,6 +362,14 @@ object Store {
             val obj = JSONObject(raw)
             buildMap { obj.keys().forEach { k -> put(k, WorkoutHistory.fromJson(obj.getJSONObject(k))) } }
         }.getOrDefault(emptyMap())
+    }
+
+    suspend fun loadExtraSlots(ctx: Context): Int = withContext(Dispatchers.IO) {
+        prefs(ctx).getInt(KEY_EXTRA_SLOTS, 0)
+    }
+
+    suspend fun saveExtraSlots(ctx: Context, slots: Int) = withContext(Dispatchers.IO) {
+        prefs(ctx).edit { putInt(KEY_EXTRA_SLOTS, slots) }
     }
 
     suspend fun saveRoutines(ctx: Context, routines: Map<String, Routine>) = withContext(Dispatchers.IO) {
@@ -429,10 +441,29 @@ fun MainHomeScreen(
     val routines = remember { mutableStateMapOf<String, Routine>() }
     val templates = remember { mutableStateListOf<WorkoutTemplate>() }
     var activeTemplateName by remember { mutableStateOf("Template A") }
+    var extraSlots by remember { mutableIntStateOf(0) }
     val history = remember { mutableStateMapOf<String, WorkoutHistory>() }
     var loaded by remember { mutableStateOf(false) }
     var stopwatchTimeInMillis by remember { mutableLongStateOf(0L) }
     var stopwatchIsRunning by remember { mutableStateOf(false) }
+
+    val scope = rememberCoroutineScope()
+
+    val billingManager = remember {
+        BillingManager(context) {
+            scope.launch {
+                val newSlots = extraSlots + 1
+                Store.saveExtraSlots(context, newSlots)
+                extraSlots = newSlots
+            }
+        }
+    }
+
+    DisposableEffect(Unit) {
+        onDispose {
+            billingManager.endConnection()
+        }
+    }
 
     LaunchedEffect(stopwatchIsRunning) {
         if (stopwatchIsRunning) {
@@ -444,17 +475,17 @@ fun MainHomeScreen(
         }
     }
 
-    val scope = rememberCoroutineScope()
-
     LaunchedEffect(Unit) {
         val loadedTemplates = Store.loadTemplates(context) ?: Store.defaultTemplates()
         val loadedActiveName = Store.loadActiveTemplateName(context)
         val loadedRoutines = Store.loadRoutines(context) ?: loadedTemplates.find { it.name == loadedActiveName }?.routines ?: Store.defaultRoutines()
         val loadedHistory = Store.loadHistory(context)
+        val loadedExtraSlots = Store.loadExtraSlots(context)
 
         templates.clear()
         templates.addAll(loadedTemplates)
         activeTemplateName = loadedActiveName
+        extraSlots = loadedExtraSlots
         routines.putAll(loadedRoutines)
         history.putAll(loadedHistory)
         loaded = true
@@ -537,6 +568,8 @@ fun MainHomeScreen(
                             formattedToday = todayStr,
                             templates = templates,
                             activeTemplateName = activeTemplateName,
+                            extraSlots = extraSlots,
+                            billingManager = billingManager,
                             onSelectTemplate = { name ->
                                 activeTemplateName = name
                                 scope.launch { Store.saveActiveTemplateName(context, name) }
@@ -741,6 +774,8 @@ fun RoutinesTab(
     formattedToday: String,
     templates: List<WorkoutTemplate>,
     activeTemplateName: String,
+    extraSlots: Int,
+    billingManager: BillingManager,
     onSelectTemplate: (String) -> Unit,
     onCreateTemplate: (String, Map<String, Routine>) -> Unit,
     onDeleteTemplate: (String) -> Unit,
@@ -752,13 +787,26 @@ fun RoutinesTab(
     onAdvancedChange: (Boolean) -> Unit,
     onUnitChange: (String) -> Unit
 ) {
+    val context = LocalContext.current
     var editingKey by remember { mutableStateOf<String?>(null) }
     var menuExpanded by remember { mutableStateOf(false) }
     var showCreateModal by remember { mutableStateOf(false) }
     var showCopyModal by remember { mutableStateOf(false) }
+    var showPaywallModal by remember { mutableStateOf(false) }
     var editingTemplate by remember { mutableStateOf<WorkoutTemplate?>(null) }
     var showSettingsModal by remember { mutableStateOf(false) }
     var showTemplatesModal by remember { mutableStateOf(false) }
+
+    val freeLimit = 2
+    val maxAllowedTemplates = freeLimit + extraSlots
+
+    fun checkLimitAndExecute(action: () -> Unit) {
+        if (templates.size >= maxAllowedTemplates) {
+            showPaywallModal = true
+        } else {
+            action()
+        }
+    }
 
     val todayShort = remember(todayKey) { WEEK_DAYS.first { it.key == todayKey }.short }
     val itemHeightPx = with(LocalDensity.current) { 72.dp.toPx() }
@@ -961,9 +1009,22 @@ fun RoutinesTab(
             activeTemplateName = activeTemplateName,
             onDismiss = { showTemplatesModal = false },
             onSelectTemplate = { name -> onSelectTemplate(name) },
-            onCreateClick = { showCreateModal = true },
-            onCopyClick = { showCopyModal = true },
+            onCreateClick = { checkLimitAndExecute { showCreateModal = true } },
+            onCopyClick = { checkLimitAndExecute { showCopyModal = true } },
             onEditTemplateClick = { template -> editingTemplate = template }
+        )
+    }
+
+    if (showPaywallModal) {
+        PaywallTemplateModal(
+            onDismiss = { showPaywallModal = false },
+            onPurchaseClick = {
+                showPaywallModal = false
+                val activity = context as? Activity
+                if (activity != null) {
+                    billingManager.launchPurchaseFlow(activity)
+                }
+            }
         )
     }
 
@@ -1004,6 +1065,65 @@ fun RoutinesTab(
                 editingTemplate = null
             }
         )
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun PaywallTemplateModal(
+    onDismiss: () -> Unit,
+    onPurchaseClick: () -> Unit
+) {
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+
+    ModalBottomSheet(
+        sheetState = sheetState,
+        onDismissRequest = onDismiss,
+        containerColor = AppTheme.card
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(24.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            Text(
+                text = "Template limit reached!",
+                fontSize = 18.sp,
+                fontWeight = FontWeight.Bold,
+                color = AppTheme.text
+            )
+
+            Text(
+                text = "You have reached the limit for free templates. Purchase an additional character slot to continue.",
+                fontSize = 13.sp,
+                color = AppTheme.muted,
+                textAlign = TextAlign.Center
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Button(
+                onClick = onPurchaseClick,
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = AppTheme.primary,
+                    contentColor = Color.White
+                ),
+                shape = RoundedCornerShape(8.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(50.dp)
+            ) {
+                Text(
+                    text = "R$ 2,00",
+                    fontSize = 15.sp,
+                    fontWeight = FontWeight.Normal
+                )
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+        }
     }
 }
 
