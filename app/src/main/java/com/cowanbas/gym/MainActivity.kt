@@ -124,7 +124,7 @@ fun GymTheme(content: @Composable () -> Unit) {
     )
 }
 
-@Immutable
+@Stable
 data class ExerciseSet(
     val id: String = System.nanoTime().toString(),
     val reps: Int = 0,
@@ -143,7 +143,7 @@ data class ExerciseSet(
     }
 }
 
-@Immutable
+@Stable
 data class Exercise(
     val id: String = System.nanoTime().toString(),
     val name: String = "",
@@ -173,7 +173,7 @@ data class Exercise(
     }
 }
 
-@Immutable
+@Stable
 data class Routine(
     val title: String = "Workout",
     val exercises: List<Exercise> = emptyList()
@@ -192,7 +192,7 @@ data class Routine(
     }
 }
 
-@Immutable
+@Stable
 data class WorkoutTemplate(
     val name: String,
     val routines: Map<String, Routine>
@@ -216,7 +216,7 @@ data class WorkoutTemplate(
     }
 }
 
-@Immutable
+@Stable
 data class WorkoutHistory(
     val date: String,
     val routineKey: String = "",
@@ -324,7 +324,7 @@ val fmt: (LocalDate) -> String = { date -> date.format(DATE_FMT) }
 
 val DAY_KEYS = listOf("monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday")
 
-@Immutable
+@Stable
 data class WeekDay(val key: String, val name: String, val short: String)
 
 val WEEK_DAYS = listOf(
@@ -847,12 +847,10 @@ fun RoutinesTab(
 
     editingKey?.let { key ->
         val routine = routines[key] ?: Routine("Empty")
-        val isToday = key == todayKey
-        val isDoneToday = isToday && history.containsKey(formattedToday)
         RoutineEditModal(
             routine = routine,
-            isToday = isToday,
-            isDoneToday = isDoneToday,
+            isToday = key == todayKey,
+            isDoneToday = key == todayKey && history.containsKey(formattedToday),
             onDismiss = { editingKey = null },
             onSave = { updated ->
                 onRoutineUpdated(key, updated)
@@ -977,12 +975,9 @@ fun SettingsModal(
             try {
                 context.contentResolver.openOutputStream(uri)?.use { outputStream ->
                     val prefs = context.getSharedPreferences("gym_store", Context.MODE_PRIVATE)
-                    val allEntries = prefs.all
                     val jsonObject = JSONObject()
-                    allEntries.forEach { (key, value) ->
-                        if (value != null) {
-                            jsonObject.put(key, value)
-                        }
+                    prefs.all.forEach { (key, value) ->
+                        if (value != null) jsonObject.put(key, value)
                     }
                     outputStream.write(jsonObject.toString().toByteArray())
                     outputStream.flush()
@@ -999,16 +994,13 @@ fun SettingsModal(
     ) { uri ->
         uri?.let {
             try {
-                try {
-                    context.contentResolver.takePersistableUriPermission(
-                        uri,
-                        android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION
-                    )
-                } catch (_: Exception) {}
+                runCatching {
+                    context.contentResolver.takePersistableUriPermission(uri, android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                }
 
                 val jsonStr = context.contentResolver.openInputStream(uri)?.use { inputStream ->
                     inputStream.bufferedReader().use { it.readText() }
-                } ?: throw Exception("The file is empty or could not be read.")
+                } ?: throw Exception("Empty file")
 
                 val jsonObject = JSONObject(jsonStr)
                 val prefs = context.getSharedPreferences("gym_store", Context.MODE_PRIVATE)
@@ -1047,9 +1039,7 @@ fun SettingsModal(
         containerColor = AppTheme.card
     ) {
         LazyColumn(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
+            modifier = Modifier.fillMaxWidth().padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
             item {
@@ -1069,9 +1059,7 @@ fun SettingsModal(
 
             item {
                 Card(
-                    onClick = {
-                        exportLauncher.launch("gym_settings_${LocalDate.now()}.json")
-                    },
+                    onClick = { exportLauncher.launch("gym_settings_${LocalDate.now()}.json") },
                     colors = CardDefaults.cardColors(containerColor = AppTheme.hover),
                     shape = RoundedCornerShape(8.dp),
                     border = BorderStroke(1.dp, AppTheme.border),
@@ -1094,9 +1082,7 @@ fun SettingsModal(
 
             item {
                 Card(
-                    onClick = {
-                        importLauncher.launch(arrayOf("application/json", "text/plain", "*/*"))
-                    },
+                    onClick = { importLauncher.launch(arrayOf("application/json", "text/plain", "*/*")) },
                     colors = CardDefaults.cardColors(containerColor = AppTheme.hover),
                     shape = RoundedCornerShape(8.dp),
                     border = BorderStroke(1.dp, AppTheme.border),
@@ -1170,6 +1156,7 @@ fun SettingsModal(
         }
     }
 }
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TemplatesBottomSheetModal(
@@ -1221,9 +1208,7 @@ fun TemplatesBottomSheetModal(
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(12.dp),
+                        modifier = Modifier.fillMaxWidth().padding(12.dp),
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
@@ -1235,11 +1220,7 @@ fun TemplatesBottomSheetModal(
                                 Icon(Icons.Default.Check, null, tint = AppTheme.text, modifier = Modifier.size(16.dp))
                                 Spacer(Modifier.width(8.dp))
                             }
-                            Text(
-                                template.name,
-                                color = AppTheme.text,
-                                fontWeight = FontWeight.Normal
-                            )
+                            Text(template.name, color = AppTheme.text, fontWeight = FontWeight.Normal)
                         }
                         IconButton(
                             onClick = {
@@ -1248,7 +1229,7 @@ fun TemplatesBottomSheetModal(
                             },
                             modifier = Modifier.size(30.dp)
                         ) {
-                            Icon(Icons.Default.Settings, contentDescription = "Configure template", tint = AppTheme.muted, modifier = Modifier.size(16.dp))
+                            Icon(Icons.Default.Settings, contentDescription = "Configure", tint = AppTheme.muted, modifier = Modifier.size(16.dp))
                         }
                     }
                 }
@@ -1301,10 +1282,7 @@ fun CopyTemplateModal(
 
     ModalBottomSheet(sheetState = sheetState, onDismissRequest = onDismiss, containerColor = AppTheme.card) {
         LazyColumn(
-            modifier = Modifier
-                .fillMaxWidth()
-                .fillMaxHeight(0.85f)
-                .padding(horizontal = 16.dp),
+            modifier = Modifier.fillMaxWidth().fillMaxHeight(0.85f).padding(horizontal = 16.dp),
             verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
             item {
@@ -1432,9 +1410,7 @@ fun EditTemplateModal(
     var templateName by remember { mutableStateOf(template.name) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
     val routinesMap = remember {
-        mutableStateMapOf<String, Routine>().apply {
-            putAll(template.routines)
-        }
+        mutableStateMapOf<String, Routine>().apply { putAll(template.routines) }
     }
     var editingDayKey by remember { mutableStateOf<String?>(null) }
     var showDeleteConfirm by remember { mutableStateOf(false) }
@@ -1442,10 +1418,7 @@ fun EditTemplateModal(
 
     ModalBottomSheet(sheetState = sheetState, onDismissRequest = onDismiss, containerColor = AppTheme.card) {
         LazyColumn(
-            modifier = Modifier
-                .fillMaxWidth()
-                .fillMaxHeight(0.85f)
-                .padding(horizontal = 16.dp),
+            modifier = Modifier.fillMaxWidth().fillMaxHeight(0.85f).padding(horizontal = 16.dp),
             verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
             item {
@@ -1598,19 +1571,14 @@ fun CreateTemplateModal(
     var templateName by remember { mutableStateOf("") }
     var errorMessage by remember { mutableStateOf<String?>(null) }
     val routinesMap = remember {
-        mutableStateMapOf<String, Routine>().apply {
-            putAll(Store.defaultRoutines())
-        }
+        mutableStateMapOf<String, Routine>().apply { putAll(Store.defaultRoutines()) }
     }
     var editingDayKey by remember { mutableStateOf<String?>(null) }
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
     ModalBottomSheet(sheetState = sheetState, onDismissRequest = onDismiss, containerColor = AppTheme.card) {
         LazyColumn(
-            modifier = Modifier
-                .fillMaxWidth()
-                .fillMaxHeight(0.85f)
-                .padding(horizontal = 16.dp),
+            modifier = Modifier.fillMaxWidth().fillMaxHeight(0.85f).padding(horizontal = 16.dp),
             verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
             item {
@@ -1976,10 +1944,7 @@ fun RoutineEditModal(
 
     ModalBottomSheet(sheetState = sheetState, onDismissRequest = onDismiss, containerColor = AppTheme.card) {
         LazyColumn(
-            modifier = Modifier
-                .fillMaxWidth()
-                .fillMaxHeight(0.85f)
-                .padding(horizontal = 16.dp),
+            modifier = Modifier.fillMaxWidth().fillMaxHeight(0.85f).padding(horizontal = 16.dp),
             verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
             item {
@@ -2055,9 +2020,7 @@ fun RoutineEditModal(
                         if (isDoneToday) {
                             Button(
                                 onClick = { onUnfinish() },
-                                colors = ButtonDefaults.buttonColors(
-                                    containerColor = AppTheme.primary
-                                ),
+                                colors = ButtonDefaults.buttonColors(containerColor = AppTheme.primary),
                                 border = BorderStroke(1.dp, AppTheme.border),
                                 modifier = Modifier.weight(1f)
                             ) {
@@ -2235,9 +2198,7 @@ fun ConstancyTab(
                     historyItem = history[dateKey],
                     onClose = { selectedDateKey = null },
                     onEdit = { editing = it },
-                    onAdd = {
-                        showRoutinePickerForDate = dateKey
-                    },
+                    onAdd = { showRoutinePickerForDate = dateKey },
                     onDelete = { confirmDelete = dateKey }
                 )
             }
@@ -2334,10 +2295,7 @@ fun RoutinePickerBottomSheet(
 
     ModalBottomSheet(sheetState = sheetState, onDismissRequest = onDismiss, containerColor = AppTheme.card) {
         LazyColumn(
-            modifier = Modifier
-                .fillMaxWidth()
-                .fillMaxHeight(0.80f)
-                .padding(horizontal = 16.dp),
+            modifier = Modifier.fillMaxWidth().fillMaxHeight(0.80f).padding(horizontal = 16.dp),
             verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
             item {
@@ -2412,9 +2370,7 @@ fun RoutinePickerBottomSheet(
                         colors = CardDefaults.cardColors(containerColor = AppTheme.hover),
                         shape = RoundedCornerShape(8.dp),
                         border = BorderStroke(1.dp, AppTheme.border),
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(bottom = 6.dp)
+                        modifier = Modifier.fillMaxWidth().padding(bottom = 6.dp)
                     ) {
                         Row(
                             modifier = Modifier.padding(12.dp),
@@ -2489,9 +2445,7 @@ fun HeatmapGrid(history: Map<String, WorkoutHistory>) {
     val currentMonday = remember(now) {
         now.with(java.time.temporal.TemporalAdjusters.previousOrSame(java.time.DayOfWeek.MONDAY))
     }
-    val startMonday = remember(currentMonday) {
-        currentMonday.minusWeeks(15)
-    }
+    val startMonday = remember(currentMonday) { currentMonday.minusWeeks(15) }
 
     val weeks = remember(startMonday) {
         (0..15).map { weekIndex ->
@@ -2500,22 +2454,11 @@ fun HeatmapGrid(history: Map<String, WorkoutHistory>) {
                 val date = weekStart.plusDays(dayOffset.toLong())
                 date.dayOfWeek.value to date
             }
-            listOf(
-                daysMap[7],
-                daysMap[6],
-                daysMap[5],
-                daysMap[4],
-                daysMap[3],
-                daysMap[2],
-                daysMap[1]
-            )
+            listOf(daysMap[7], daysMap[6], daysMap[5], daysMap[4], daysMap[3], daysMap[2], daysMap[1])
         }
     }
 
-    Box(
-        modifier = Modifier.fillMaxWidth(),
-        contentAlignment = Alignment.Center
-    ) {
+    Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
         Row(
             modifier = Modifier.horizontalScroll(rememberScrollState()),
             horizontalArrangement = Arrangement.spacedBy(3.dp)
@@ -2557,8 +2500,7 @@ fun WeeklyBarChart(history: Map<String, WorkoutHistory>, monthlyRef: YearMonth) 
             while (currentMonday <= lastDayOfMonth) {
                 val weekSunday = currentMonday.plusDays(6)
                 val count = (0..6).count { dayOffset ->
-                    val d = currentMonday.plusDays(dayOffset.toLong())
-                    history.containsKey(fmt(d))
+                    history.containsKey(fmt(currentMonday.plusDays(dayOffset.toLong())))
                 }
 
                 val isCurrentWeek = !today.isBefore(currentMonday) && !today.isAfter(weekSunday)
@@ -2595,9 +2537,7 @@ fun WeeklyBarChart(history: Map<String, WorkoutHistory>, monthlyRef: YearMonth) 
                 Spacer(Modifier.height(4.dp))
 
                 Box(
-                    modifier = Modifier
-                        .width(22.dp)
-                        .height(55.dp),
+                    modifier = Modifier.width(22.dp).height(55.dp),
                     contentAlignment = Alignment.BottomCenter
                 ) {
                     Box(
@@ -2672,8 +2612,7 @@ fun CalendarGrid(
                                 ),
                             contentAlignment = Alignment.Center
                         ) {
-                            Text("$dayNum", fontSize = 11.sp, fontWeight = FontWeight.Normal,
-                                color = Color.White)
+                            Text("$dayNum", fontSize = 11.sp, fontWeight = FontWeight.Normal, color = Color.White)
                         }
                     } else {
                         Spacer(Modifier.weight(1f).aspectRatio(1f))
@@ -2765,23 +2704,12 @@ fun DayDetailCard(
                             if (expanded) {
                                 ex.advancedSets.forEachIndexed { i, set ->
                                     Row(
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .padding(start = 16.dp, top = 2.dp, bottom = 2.dp),
+                                        modifier = Modifier.fillMaxWidth().padding(start = 16.dp, top = 2.dp, bottom = 2.dp),
                                         horizontalArrangement = Arrangement.SpaceBetween,
                                         verticalAlignment = Alignment.CenterVertically
                                     ) {
-                                        Text(
-                                            "Set ${String.format(Locale.US, "%02d", i + 1)}:",
-                                            fontSize = 11.sp,
-                                            color = AppTheme.muted
-                                        )
-                                        Text(
-                                            "${String.format(Locale.US, "%02d", set.reps)} • ${trimNumber(set.weight)}$unitStr",
-                                            fontSize = 11.sp,
-                                            color = AppTheme.text,
-                                            textAlign = TextAlign.End
-                                        )
+                                        Text("Set ${String.format(Locale.US, "%02d", i + 1)}:", fontSize = 11.sp, color = AppTheme.muted)
+                                        Text("${String.format(Locale.US, "%02d", set.reps)} • ${trimNumber(set.weight)}$unitStr", fontSize = 11.sp, color = AppTheme.text, textAlign = TextAlign.End)
                                     }
                                 }
                             }
@@ -2843,10 +2771,7 @@ fun HistoryEditModal(
 
     ModalBottomSheet(sheetState = sheetState, onDismissRequest = onDismiss, containerColor = AppTheme.card) {
         LazyColumn(
-            modifier = Modifier
-                .fillMaxWidth()
-                .fillMaxHeight(0.85f)
-                .padding(horizontal = 16.dp),
+            modifier = Modifier.fillMaxWidth().fillMaxHeight(0.85f).padding(horizontal = 16.dp),
             verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
             item {
