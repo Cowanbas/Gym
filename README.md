@@ -23,9 +23,6 @@ Próximas:
 
 Mais para frente:
 - *Colocar idioma Português.* ❌
-- *Adicionar permissão de faturamento no AndroidManifest.xml.* ❌
-- *Adicionar depedências do Google PLay Billing no build.gradle(app).* ❌
-- *Adicionar função Google Play Billing no código final do aplicativo.* ❌
 
 # Supostas próximas otimizações
 
