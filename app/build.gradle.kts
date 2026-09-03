@@ -11,8 +11,8 @@ android {
         applicationId = "com.cowanbas.gym"
         minSdk = 26
         targetSdk = 37
-        versionCode = 3
-        versionName = "2.1"
+        versionCode = 4
+        versionName = "3"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -49,7 +49,7 @@ dependencies {
     implementation(libs.androidx.compose.material.icons.extended)
     implementation(libs.androidx.activity.compose)
     implementation(libs.kotlinx.coroutines.android)
-    implementation("com.android.billingclient:billing-ktx:7.1.0")
+    implementation("com.android.billingclient:billing-ktx:8.0.0")
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
