@@ -13,10 +13,10 @@ A maneira mais justa que encontrei de monetizar o aplicativo foi adicionar um si
 
 # Features
 
-Concluidas:
-
 Próximas:
 
+- *Exercícios pre-definidos na criação.* ❌
+- *Gráficos de progressão de peso/cargas.* ❌
 - *Quando na aba de treinos for adicionado treinos e não for salvado a pessoa sair swapando ou clicando no X aparecer um popup do jetpackcompose perguntando se ela não quer salvar.* ❌
 - *Sempre que a semana reiniciar as cargas zeram.* ❌
 - *Quando clicar nos dias treinados vai mostrar quantos anos meses e dias que você treinou no total.* ❌
@@ -24,10 +24,6 @@ Próximas:
 Mais para frente:
 - *Colocar idioma Português.* ❌
 
-# Supostas próximas otimizações
-
-- *Repartir o código.* ❌
-- *Otimização mais ampla do código.* ❌ 
 
 # Imagens
 
