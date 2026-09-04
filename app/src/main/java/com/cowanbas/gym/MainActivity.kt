@@ -3056,20 +3056,22 @@ fun HistoryEditModal(
 
             item {
                 Spacer(Modifier.height(6.dp))
-                Button(
-                    onClick = {
-                        onSave(item.copy(routineTitle = title.ifBlank { "Empty" }, exercises = exercises.toList()))
-                    },
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = AppTheme.hover,
-                        contentColor = AppTheme.text
-                    ),
-                    border = BorderStroke(1.dp, AppTheme.border),
-                    modifier = Modifier.weight(1f)
-                ) {
-                    Icon(Icons.Default.Save, null, tint = AppTheme.text, modifier = Modifier.size(15.dp))
-                    Spacer(Modifier.width(6.dp))
-                    Text("Save", color = AppTheme.text, fontWeight = FontWeight.Normal)
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Button(
+                        onClick = {
+                            onSave(item.copy(routineTitle = title.ifBlank { "Empty" }, exercises = exercises.toList()))
+                        },
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = AppTheme.hover,
+                            contentColor = AppTheme.text
+                        ),
+                        border = BorderStroke(1.dp, AppTheme.border),
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Icon(Icons.Default.Save, null, tint = AppTheme.text, modifier = Modifier.size(15.dp))
+                        Spacer(Modifier.width(6.dp))
+                        Text("Save", color = AppTheme.text, fontWeight = FontWeight.Normal)
+                    }
                 }
                 Spacer(Modifier.height(32.dp))
             }
