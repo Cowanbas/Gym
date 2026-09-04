@@ -11,8 +11,8 @@ android {
         applicationId = "com.cowanbas.gym"
         minSdk = 26
         targetSdk = 37
-        versionCode = 5
-        versionName = "3.1"
+        versionCode = 6
+        versionName = "3.2"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
